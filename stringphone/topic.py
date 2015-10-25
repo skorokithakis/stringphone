@@ -145,11 +145,13 @@ class Topic:
         """
         if self._topic_key is None:
             raise RuntimeError(
-                "Cannot construct introduction reply, topic key is unknown.")
+                "Cannot construct introduction reply, topic key is unknown."
+            )
         # The public key of the participant requesting the topic key.
         data = self._unpack_introduction(message)
         encrypted_topic_key = self._asymmetric_crypto.encrypt(
-            self._topic_key, data["encryption_key"])
+            self._topic_key, data["encryption_key"]
+        )
         return b"r" + encrypted_topic_key + self._asymmetric_crypto.public_key + self._signer.public_key
 
     def decode_introduction_reply(self, message):
@@ -160,8 +162,9 @@ class Topic:
         :param bytes message: The raw reply message from the channel.
         """
         data = self._unpack_introduction(message)
-        topic_key = self._asymmetric_crypto.decrypt(data["encrypted_topic_key"],
-                                                    data["encryption_key"])
+        topic_key = self._asymmetric_crypto.decrypt(
+            data["encrypted_topic_key"], data["encryption_key"]
+        )
         self._init_symmetric_crypto(topic_key)
 
     #########
@@ -203,7 +206,8 @@ class Topic:
         elif message.startswith(b"r") and self._topic_key is None:
             # This is a reply to an introduction.
             raise IntroductionReplyError(
-                "The received message is an introduction.")
+                "The received message is an introduction."
+            )
         elif message.startswith(b"m"):
             message = message[1:]
             # Split the message envelope (signature, participant_id, ciphertext)

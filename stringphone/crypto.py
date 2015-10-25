@@ -48,8 +48,9 @@ class AsymmetricCrypto:
         :return: The ciphertext.
         :rtype: bytes
         """
-        box = nacl.public.Box(self._private_key,
-                              nacl.public.PublicKey(public_key))
+        box = nacl.public.Box(
+            self._private_key, nacl.public.PublicKey(public_key)
+        )
         nonce = nacl.utils.random(nacl.public.Box.NONCE_SIZE)
         ciphertext = box.encrypt(plaintext, nonce)
         return ciphertext
@@ -64,8 +65,9 @@ class AsymmetricCrypto:
         :return: The plaintext.
         :rtype: bytes
         """
-        box = nacl.public.Box(self._private_key,
-                              nacl.public.PublicKey(public_key))
+        box = nacl.public.Box(
+            self._private_key, nacl.public.PublicKey(public_key)
+        )
         return box.decrypt(ciphertext)
 
     @property
