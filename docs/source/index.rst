@@ -76,6 +76,10 @@ get them to exchange messages securely::
     >>> bob.decode(alice_message, naive=True)
     'Hi Bob!'
 
+    # If we don't want to be hassled by unkown messages, we can ignore
+    # messages from untrusted participants:
+    >>> bob.decode(alice_message, ignore_untrusted=True)
+
     # A much better way to do this is to have Bob trust Alice's public key:
     >>> bob.add_participant(alice.public_key)
 

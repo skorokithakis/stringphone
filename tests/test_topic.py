@@ -14,6 +14,18 @@ def test_decoding_inverts_encoding(bytestring):
 
 
 @given(binary())
+def test_ignore_untrusted(bytestring):
+    topic_key = generate_topic_key()
+    master = Topic(generate_signing_key(), topic_key)
+    slave = Topic(generate_signing_key(), topic_key)
+
+    assert slave.decode(master.encode(bytestring), ignore_untrusted=True) is None
+
+    master.add_participant(slave.public_key)
+    assert master.decode(slave.encode(bytestring), naive=True) == bytestring
+
+
+@given(binary())
 def test_naive_agreement(bytestring):
     topic_key = generate_topic_key()
     master = Topic(generate_signing_key(), topic_key)

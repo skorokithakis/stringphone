@@ -180,7 +180,7 @@ class Topic:
         signed = self._signer.sign(ciphertext)
         return b"m" + signed
 
-    def decode(self, message, naive=False):
+    def decode(self, message, naive=False, ignore_untrusted=False):
         """
         Decode a message.
 
@@ -190,6 +190,10 @@ class Topic:
         :param bytes message: The plaintext to encode.
         :param bool naive: If `True`, signature verification **IS NOT
             PERFORMED**. Use at your own risk.
+        :param bool ignore_untrusted: If `True`, messages from unknown
+            participants will be silently ignored. This does not include
+            introductions or introduction replies, as those are special and will
+            still raise an exception.
         :returns: The decrypted and (optionally) verified plaintext.
         :rtype: bytes
         """
@@ -208,9 +212,14 @@ class Topic:
             if not naive:
                 # Verify the signature.
                 if participant_id not in self._participants:
-                    raise UntrustedKeyError(
-                        "Verification key for participant not found."
-                    )
+                    if ignore_untrusted:
+                        # We want to just drop messages from unknown
+                        # participants on the floor.
+                        return
+                    else:
+                        raise UntrustedKeyError(
+                            "Verification key for participant not found."
+                        )
                 participant_key = self._participants[participant_id]
                 verifier = Verifier(participant_key)
                 verifier.verify(message)
