@@ -6,6 +6,19 @@ an in-depth explanation of the internals of string phone. If all you want to do
 is use the library, you don't need to know any of this.
 
 
+Cryptography
+============
+
+This is going to be short. String phone uses NaCl, as the "gold standard" in
+cryptography, and does whatever NaCl does. Keys are generated using NaCl's
+functions, signing is done using NaCl's signing methods, and symmetric and
+asymmetric encryption are as well. In short, it's NaCl all the way, with
+minimal novelty.
+
+For specifics, please refer to the `PyNaCl documentation
+<http://pynacl.readthedocs.org/>`_.
+
+
 Discovery
 =========
 
