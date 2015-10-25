@@ -3,6 +3,8 @@ String phone
 
     *Nothing is as secure as a string phone.* -- The NSA
 
+.. image:: _static/stringphone.jpg
+
 Introduction
 ------------
 
