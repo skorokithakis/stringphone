@@ -100,8 +100,10 @@ get them to exchange messages securely::
     # That's it for simple communication! We can look into discovering participants
     # and how to trust them in the "Discovery" section.
 
+
 .. toctree::
    :hidden:
+   :maxdepth: 2
 
    Home <self>
    protocol

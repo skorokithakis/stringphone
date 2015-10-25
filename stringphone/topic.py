@@ -176,9 +176,7 @@ class Topic:
         :returns: The encrypted ciphertext to broadcast.
         :rtype: bytes
         """
-        ciphertext = self.id + self._symmetric_crypto.encrypt(
-            message
-        )
+        ciphertext = self.id + self._symmetric_crypto.encrypt(message)
         signed = self._signer.sign(ciphertext)
         return b"m" + signed
 
