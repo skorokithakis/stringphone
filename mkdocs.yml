@@ -1,0 +1,8 @@
+site_name: String phone documentation
+site_description: A secure communications library for embedded devices.
+site_author: Stavros Korokithakis
+repo_url: https://github.com/skorokithakis/stringphone
+site_url: https://stringphone.readthedocs.org/
+theme: readthedocs
+pages:
+  - 'Introduction': 'index.md'
