@@ -25,7 +25,7 @@ Since complicated things tend to be less secure, string phone aims to have a ver
 Basics
 ------
 
-(If you are too impatient for theory, skip down to :ref:`getting-started` to... get started)
+(If you are too impatient for theory, skip to :ref:`getting-started` to... get started)
 
 String phone's communication primitive is a :py:class:`Topic <stringphone.topic.Topic>`. Think of a topic as a room where many devices are shouting at each
 other. This can be an MQTT queue, a pub/sub channel, an IRC channel, or even a single socket (one-to-one communication
@@ -40,74 +40,28 @@ Each topic also has a persistent encryption key, called a *topic key*. The topic
 between participants are securely encrypted. The topic key should only be known to the participants. Anyone with the
 topic key can read all messages exchanged in the topic without being detected.
 
-.. _getting-started:
+Since you've made it this far, you can continue to the :doc:`introduction`.
 
-Getting started
----------------
 
-We'll start with a simple case. We will create two participants, one called *Alice* and one called *Bob*, both of whom
-know the topic key already (they have communicated beforehand over a secure channel and shared the topic key.  Let's
-get them to exchange messages securely::
+Weaknesses
+----------
 
-    >>> from stringphone import Topic, generate_signing_key, generate_topic_key
+No security library can be complete without a list of its weaknesses, so you
+know what to avoid. Since the protocol is geared towards embedded devices, it
+strives to be simple, so it lacks many bells and whistles that may not be
+necessary or useful to everyone. You may have to implement these yourself, on
+top of string phone, or just be aware of them.
 
-    # Let's generate a topic key to share between the participants.
-    #  generate_topic_key() uses a cryptographically secure RNG, so
-    # you're safe using it to generate your keys.
-    >>> topic_key = generate_topic_key()
+Here's what you need to watch out for:
 
-    >>> topic_key
-    ']j\x9b\xf7\xe77\x07h\xdcF\x82\x95\x0fo\x06\x90\xe1]R\xff\x8a\xeal\xd0\xef\x89J\xbd\x97\xf1[\xb4'
-
-    # Give Alice and Bob one secure signing key each.
-    >>> alice = Topic(generate_signing_key(), topic_key)
-    >>> bob = Topic(generate_signing_key(), topic_key)
-
-    # Alice encodes a message to send to Bob. This encrypts and signs the message.
-    >>> alice_message = alice.encode("Hi Bob!")
-
-    # Bob will try to decode the message.
-    >>> bob.decode(alice_message)
-    Traceback (most recent call last):
-      File "<input>", line 1, in <module>
-      File "stringphone/topic.py", line 166, in decode
-        "Verification key for participant not found."
-    UntrustedKeyError: Verification key for participant not found.
-
-    # String phone has raised an exception, as Bob has never seen Alice before
-    # and does not trust her. We can decrypt the message anyway by disabling
-    # signature verification, which is VERY VERY BAD.
-    >>> bob.decode(alice_message, naive=True)
-    'Hi Bob!'
-
-    # If we don't want to be hassled by unkown messages, we can ignore
-    # messages from untrusted participants:
-    >>> bob.decode(alice_message, ignore_untrusted=True)
-
-    # A much better way to do this is to have Bob trust Alice's public key:
-    >>> bob.add_participant(alice.public_key)
-
-    # Strict mode will also work now.
-    >>> bob.decode(alice_message)
-    'Hi Bob!'
-
-    # Let's see what Alice thinks by having Bob reply back:
-    >>> bob_message = bob.encode("Hey Alice!")
-
-    # Alice will try to decrypt.
-    >>> alice.decode(bob_message)
-    Traceback (most recent call last):
-      File "<input>", line 1, in <module>
-      File "stringphone/topic.py", line 166, in decode
-        "Verification key for participant not found."
-    UntrustedKeyError: Verification key for participant not found.
-
-    # Alice doesn't trust Bob either. We can fix this the same way as before and
-    # restore order in the universe:
-    >>> alice.add_participant(bob.public_key)
-
-    # That's it for simple communication! We can look into discovering participants
-    # and how to trust them in the "Discovery" section.
+* There is no replay protection at all. Anyone can record and replay a message
+  at any time. If you want to guard against replays, make sure to include
+  a sequence number or timestamp in your message, and discard commands that are
+  too old or out of sequence.
+* There is no forward secrecy. Once a participant has joined a topic, they can
+  read all future *and* past messages that they may have. The only way to get
+  rid of them is to create a new topic with a new key and move everyone over.
+* Many more things that I'm sure will come up soon.
 
 
 .. toctree::
@@ -115,5 +69,6 @@ get them to exchange messages securely::
    :maxdepth: 2
 
    Home <self>
+   introduction
    protocol
    API documentation <stringphone>
