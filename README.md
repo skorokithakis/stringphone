@@ -1,8 +1,7 @@
 String phone
 ============
 
-.. image:: https://travis-ci.org/skorokithakis/stringphone.png?branch=master
-        :target: https://travis-ci.org/skorokithakis/stringphone
+[![Build Status](https://travis-ci.org/skorokithakis/stringphone.svg?branch=master)](https://travis-ci.org/skorokithakis/stringphone)
 
 String phone is a secure communications library and protocol geared towards embedded devices. It is still a prototype.
 Be warned that anything may change at any point right now.
