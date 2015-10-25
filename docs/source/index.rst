@@ -1,7 +1,7 @@
 String phone
 ============
 
-Nothing is as secure as a string phone.
+    *Nothing is as secure as a string phone.* -- The NSA
 
 Introduction
 ------------
@@ -21,9 +21,9 @@ Since complicated things tend to be less secure, string phone aims to have a ver
 Basics
 ------
 
-(If you are too impatient for theory, skip down to "Getting started" to... get started)
+(If you are too impatient for theory, skip down to :ref:`getting-started` to... get started)
 
-String phone's communication primitive is a *topic*. Think of a topic as a room where many devices are shouting at each
+String phone's communication primitive is a :py:class:`Topic <stringphone.topic.Topic>`. Think of a topic as a room where many devices are shouting at each
 other. This can be an MQTT queue, a pub/sub channel, an IRC channel, or even a single socket (one-to-one communication
 is a subset of many-to-one).
 
@@ -36,6 +36,7 @@ Each topic also has a persistent encryption key, called a *topic key*. The topic
 between participants are securely encrypted. The topic key should only be known to the participants. Anyone with the
 topic key can read all messages exchanged in the topic without being detected.
 
+.. _getting-started:
 
 Getting started
 ---------------
