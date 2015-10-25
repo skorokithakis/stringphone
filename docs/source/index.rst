@@ -3,10 +3,12 @@ String phone
 
     *Nothing is as secure as a string phone.* -- The NSA
 
-.. image:: _static/stringphone.jpg
-
 Introduction
 ------------
+
+.. image:: _static/stringphone.jpg
+   :alt: Two tin cans and a string.
+   :align: right
 
 String phone is a secure communications protocol and library geared towards embedded devices. Its goal is to allow, for
 example, your mobile phone to communicate with your home automation devices in a secure manner, even over an insecure
