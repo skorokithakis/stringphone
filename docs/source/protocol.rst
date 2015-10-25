@@ -5,6 +5,45 @@ This page details the messaging protocol and the format of the messages. It is
 an in-depth explanation of the internals of string phone. If all you want to do
 is use the library, you don't need to know any of this.
 
+
+Discovery
+=========
+
+In the simple case, every participant already has the shared topic key and the
+keys and IDs of every other participant that they are interested in. Obviously,
+if you don't care about receiving or authenticating a participant's messages,
+you don't need their public key.  More frequently, though, a participant will
+start out not knowing anyone, or the key. This is where discovery comes in.
+
+
+Introduction
+^^^^^^^^^^^^
+
+Discovery is done through introductions. When a participant joins a channel, it
+can send an introduction message (obtained through
+:py:meth:`construct_introduction()
+<stringphone.topic.Topic.construct_introduction>`) to request the topic key
+from other participants. This contains the new participant's signing key (so it
+can identify subsequent messages to others) and its encryption key, with which
+the topic key will be encrypted.
+
+
+Reply
+^^^^^
+
+A participant may choose to reply to an introduction. It can also just ignore
+the introduction, if it's not expecting any new participants. If the
+participant chooses to reply to the introduction, it can construct a reply with 
+:py:meth:`construct_introduction_reply(introduction)
+<stringphone.topic.Topic.construct_introduction_reply>`. The reply contains the
+encrypted topic key, the encryption key (for verification) and the signing key
+of the replying participant, as the new participant may want to trust the
+former.
+
+The new node parses this and decrypts the topic key, which it then uses to post
+messages to and read messages from the topic.
+
+
 Message format
 ==============
 
