@@ -2,7 +2,6 @@ String phone
 ============
 
 [![Build Status](https://travis-ci.org/skorokithakis/stringphone.svg?branch=master)](https://travis-ci.org/skorokithakis/stringphone)
-
 [![PyPI
 version](https://img.shields.io/pypi/v/stringphone.svg)](https://pypi.python.org/pypi/stringphone)
 
