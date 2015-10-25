@@ -1,3 +1,8 @@
 *.pyc
 .hypothesis
 .venv
+.tox
+.cache
+.eggs
+docs/build
+stringphone.egg-info

@@ -2,9 +2,9 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import binary
 
-from .topic import Topic
-from .crypto import generate_signing_key, generate_topic_key
-from .exceptions import IntroductionError, IntroductionReplyError
+from stringphone import Topic
+from stringphone import generate_signing_key, generate_topic_key
+from stringphone import IntroductionError, IntroductionReplyError
 
 
 @given(binary())

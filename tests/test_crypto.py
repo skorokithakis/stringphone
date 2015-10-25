@@ -1,7 +1,7 @@
 from hypothesis import given
 from hypothesis.strategies import binary
 
-from .crypto import (
+from stringphone.crypto import (
     Signer, SymmetricCrypto, generate_signing_key, generate_topic_key, Verifier
 )
 
