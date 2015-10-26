@@ -6,14 +6,17 @@ import hashlib
 from .crypto import AsymmetricCrypto, Signer, SymmetricCrypto, Verifier
 from .exceptions import IntroductionError, IntroductionReplyError, UntrustedKeyError
 
+PARTICIPANT_ID_LENGTH = 16
+
 
 def _get_id_from_key(public_key):
     """
     Derive the participant's ID from the public key.
 
-    The ID is the first 16 bytes of the SHA
-    """
-    return hashlib.sha256(public_key).digest()[:16]
+    The ID is the first %s bytes of the SHA256 hash of the participant's public
+    key.
+    """ % PARTICIPANT_ID_LENGTH
+    return hashlib.sha256(public_key).digest()[:PARTICIPANT_ID_LENGTH]
 
 
 class Topic:
@@ -216,7 +219,9 @@ class Topic:
             message = message[1:]
             # Split the message envelope (signature, participant_id, ciphertext)
             # into two of its constituent parts.
-            participant_id, ciphertext = message[64:80], message[80:]
+            participant_id, ciphertext = message[
+                64:64 + PARTICIPANT_ID_LENGTH], message[64 +
+                                                        PARTICIPANT_ID_LENGTH:]
             if not naive:
                 # Verify the signature.
                 if participant_id not in self._participants:
