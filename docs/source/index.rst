@@ -18,35 +18,66 @@ Introduction
    :alt: Two tin cans and a string.
    :align: right
 
-String phone is a secure communications protocol and library geared towards embedded devices. Its goal is to allow, for
-example, your mobile phone to communicate with your home automation devices in a secure manner, even over an insecure
-channel. It also allows for authentication of devices, so you can be sure that the only device whose commands will be
-accepted is the phone.
+String phone is a secure communications protocol and library geared towards
+embedded devices. Its goal is to allow, for example, your mobile phone to
+communicate with your home automation devices in a secure manner, even over an
+insecure channel. It also allows for authentication of devices, so you can be
+sure that the only device whose commands will be accepted is the phone.
 
-String phone isn't a communication layer itself. Rather, it sits over your communication layer, encrypting and signing
-messages as required before they are sent over your channel. It also verifies and decrypts incoming messages, ensuring
-that devices are who they claim to be, and that no third party can read your communications.
+String phone isn't a communication layer itself. Rather, it sits over your
+communication layer, encrypting and signing messages as required before they are
+sent over your channel. It also verifies and decrypts incoming messages,
+ensuring that devices are who they claim to be, and that no third party can read
+your communications.
 
-Since complicated things tend to be less secure, string phone aims to have a very simple interface.
+Since complicated things tend to be less secure, string phone aims to have
+a very simple interface.
+
+
+Motivation
+----------
+
+With embedded devices, the internet of things, and ubiquitous computing
+becoming so common that I bet you didn't notice those three words refer to the
+exact same thing, there's an increasing need for security when these devices
+communicate with each other. The most common thing so far has been to just not
+use security at all, because it's more convenient. String phone aims to make
+security so convenient that you won't have an excuse to not use it. All you
+need to do to secure your devices' communications in the simple case is to
+generate a key and store it on each one, and call two methods to encode/decode
+messages before transmission. That's it.
+
+This specific library is written in Python as a proof-of-concept and initial
+implementation of the underlying protocol, so it can be refined and improved.
+Python isn't very appropriate for running on embedded devices, as it's suitable
+for pretty much only the ones running Linux, like Raspberry Pi and the like.
+However, the intention is that the library will be ported to other languages
+like Java, Objective C/Swift and C, so it can be used on other platforms.
 
 
 Basics
 ------
 
-(If you are too impatient for theory, skip to :ref:`getting-started` to... get started)
+(If you are too impatient for theory, skip to :ref:`getting-started` to... get
+started)
 
-String phone's communication primitive is a :py:class:`Topic <stringphone.topic.Topic>`. Think of a topic as a room where many devices are shouting at each
-other. This can be an MQTT queue, a pub/sub channel, an IRC channel, or even a single socket (one-to-one communication
-is a subset of many-to-one).
+String phone's communication primitive is a :py:class:`Topic
+<stringphone.topic.Topic>`. Think of a topic as a room where many devices are
+shouting at each other. This can be an MQTT queue, a pub/sub channel, an IRC
+channel, or even a single socket (one-to-one communication is a subset of
+many-to-one).
 
-Each device in the topic is called a *participant*. Each participant has its own, persistent elliptic curve key, that
-is kept secret from other participants and anyone else. This key is top secret, and should not be shared with any
-person or device. It should never leave the participant's storage. This key is used to identify the participant and
-to sign the participant's messages so other participants are sure of who is sending them.
+Each device in the topic is called a *participant*. Each participant has its
+own, persistent elliptic curve key, that is kept secret from other participants
+and anyone else. This key is top secret, and should not be shared with any
+person or device. It should never leave the participant's storage. This key is
+used to identify the participant and to sign the participant's messages so other
+participants are sure of who is sending them.
 
-Each topic also has a persistent encryption key, called a *topic key*. The topic key ensures that all communcations
-between participants are securely encrypted. The topic key should only be known to the participants. Anyone with the
-topic key can read all messages exchanged in the topic without being detected.
+Each topic also has a persistent encryption key, called a *topic key*. The topic
+key ensures that all communcations between participants are securely encrypted.
+The topic key should only be known to the participants. Anyone with the topic
+key can read all messages exchanged in the topic without being detected.
 
 Since you've made it this far, you can continue to the :doc:`introduction`.
 
