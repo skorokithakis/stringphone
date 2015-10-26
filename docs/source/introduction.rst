@@ -38,6 +38,8 @@ get them to exchange messages securely::
     # String phone has raised an exception, as Bob has never seen Alice before
     # and does not trust her. We can decrypt the message anyway by disabling
     # signature verification, which is VERY VERY BAD.
+    # If you don't care about making sure that devices are who they claim to be,
+    # you can just use this and you're done.
     >>> bob.decode(alice_message, naive=True)
     'Hi Bob!'
 
@@ -45,7 +47,7 @@ get them to exchange messages securely::
     # messages from untrusted participants:
     >>> bob.decode(alice_message, ignore_untrusted=True)
 
-    # A much better way to do this is to have Bob trust Alice's public key:
+    # A much better way to communicate is to have Bob trust Alice's public key:
     >>> bob.add_participant(alice.public_key)
 
     # Strict mode will also work now.
