@@ -58,8 +58,8 @@ like Java, Objective C/Swift and C, so it can be used on other platforms.
 Basics
 ------
 
-(If you are too impatient for theory, skip to :ref:`getting-started` to... get
-started)
+(If you are too impatient for the theory, skip to :ref:`getting-started` to...
+get started)
 
 String phone's communication primitive is a :py:class:`Topic
 <stringphone.topic.Topic>`. Think of a topic as a room where many devices are
