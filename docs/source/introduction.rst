@@ -47,10 +47,13 @@ get them to exchange messages securely::
     # messages from untrusted participants:
     >>> bob.decode(alice_message, ignore_untrusted=True)
 
-    # A much better way to communicate is to have Bob trust Alice's public key:
+    # A much better way to communicate is to have Bob trust Alice's public key.
+    # This is done offline, after receiving the public key from Alice in some
+    # secure manner. It can also be done through the discovery process, which is
+    # detailed later on.
     >>> bob.add_participant(alice.public_key)
 
-    # Strict mode will also work now.
+    # Strict mode will work now.
     >>> bob.decode(alice_message)
     'Hi Bob!'
 
