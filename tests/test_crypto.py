@@ -2,12 +2,22 @@ from hypothesis import given
 from hypothesis.strategies import binary
 
 from stringphone.crypto import (
-    Signer, SymmetricCrypto, generate_signing_key, generate_topic_key, Verifier
+    Signer, AsymmetricCrypto, SymmetricCrypto, generate_signing_key,
+    generate_topic_key, Verifier
 )
 
 
 @given(binary())
-def test_decryption_inverts_encryption(bytestring):
+def test_asymmetric_decryption_inverts_encryption(bytestring):
+    a1 = AsymmetricCrypto()
+    a2 = AsymmetricCrypto()
+    assert a2.decrypt(
+        a1.encrypt(bytestring, a2.public_key), a1.public_key
+    ) == bytestring
+
+
+@given(binary())
+def test_symmetric_decryption_inverts_encryption(bytestring):
     c = SymmetricCrypto(generate_topic_key())
     assert c.decrypt(c.encrypt(bytestring)) == bytestring
 
