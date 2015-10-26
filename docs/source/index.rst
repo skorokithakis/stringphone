@@ -3,6 +3,14 @@ String phone
 
     *Nothing is as secure as a string phone.* -- The NSA
 
+.. DANGER:: This is alpha-quality software, and it's alpha-quality *security*
+   software, at that, which is at least ten times more dangerous. Don't use it
+   for anything where people are going to die if I got something wrong, or even
+   where people are going to be mildly inconvenienced. Just use it for your
+   quantified self dashboards until it gets super famous and is reviewed a bit
+   more.
+
+
 Introduction
 ------------
 
@@ -61,6 +69,9 @@ Here's what you need to watch out for:
 * There is no forward secrecy. Once a participant has joined a topic, they can
   read all future *and* past messages that they may have. The only way to get
   rid of them is to create a new topic with a new key and move everyone over.
+* Salsa20 has a 64-bit nonce, which may be too small when sending many small
+  messages. This may be worth keeping in mind if you're worried about nonce
+  reuse.
 * Many more things that I'm sure will come up soon.
 
 

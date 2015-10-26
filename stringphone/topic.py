@@ -1,6 +1,8 @@
 """
 Classes and methods relating to the topic and its participants.
 """
+import hashlib
+
 from .crypto import AsymmetricCrypto, Signer, SymmetricCrypto, Verifier
 from .exceptions import IntroductionError, IntroductionReplyError, UntrustedKeyError
 
@@ -8,8 +10,10 @@ from .exceptions import IntroductionError, IntroductionReplyError, UntrustedKeyE
 def _get_id_from_key(public_key):
     """
     Derive the participant's ID from the public key.
+
+    The ID is the first 16 bytes of the SHA
     """
-    return public_key[:16]
+    return hashlib.sha256(public_key).digest()[:16]
 
 
 class Topic:

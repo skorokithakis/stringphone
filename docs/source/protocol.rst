@@ -15,6 +15,12 @@ functions, signing is done using NaCl's signing methods, and symmetric and
 asymmetric encryption are as well. In short, it's NaCl all the way, with
 minimal novelty.
 
+To delve into the lower layers a bit, NaCl uses Salsa20 for symmetric
+encryption and Poly1305 for authentication. Each message uses a new,
+randomly-generated nonce, which may not be enough when sending many short
+messages. A potential future improvement would be to use XSalsa20 for the
+longer nonce.
+
 For specifics, please refer to the `PyNaCl documentation
 <http://pynacl.readthedocs.org/>`_.
 
