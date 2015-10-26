@@ -213,7 +213,7 @@ class Topic:
         elif message.startswith(b"r") and self._topic_key is None:
             # This is a reply to an introduction.
             raise IntroductionReplyError(
-                "The received message is an introduction."
+                "The received message is an introduction reply."
             )
         elif message.startswith(b"m"):
             message = message[1:]
