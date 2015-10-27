@@ -3,8 +3,6 @@ Classes and methods relating to the topic and its participants.
 """
 import hashlib
 
-import nacl.exceptions
-
 from .crypto import AsymmetricCrypto, Signer, SymmetricCrypto, Verifier
 from .exceptions import IntroductionError, IntroductionReplyError, MalformedMessageError, MissingTopicKeyError, UntrustedKeyError
 
@@ -154,7 +152,8 @@ class Topic:
         data = self._unpack_message(message)
         encrypted_topic_key = self._asymmetric_crypto.encrypt(
             self._topic_key, data["encryption_key"])
-        return b"r" + data["sender_id"] + encrypted_topic_key + self._asymmetric_crypto.public_key + self._signer.public_key
+        return b"r" + data["sender_id"] + encrypted_topic_key + \
+               self._asymmetric_crypto.public_key + self._signer.public_key
 
     def decode_introduction_reply(self, message):
         """
@@ -170,7 +169,10 @@ class Topic:
             # disregard.
             return
 
-        topic_key = self._asymmetric_crypto.decrypt(data["encrypted_topic_key"], data["encryption_key"])
+        topic_key = self._asymmetric_crypto.decrypt(
+            data["encrypted_topic_key"],
+            data["encryption_key"]
+        )
         self._init_symmetric_crypto(topic_key)
 
     #########
