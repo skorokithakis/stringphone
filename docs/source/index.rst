@@ -40,7 +40,7 @@ Motivation
 With embedded devices, the internet of things, and ubiquitous computing
 becoming so common that I bet you didn't notice those three words refer to the
 exact same thing, there's an increasing need for security when these devices
-communicate with each other. The most common thing so far has been to just not
+communicate with each other. The most common approach so far has been to just not
 use security at all, because it's more convenient. String phone aims to make
 security so convenient that you won't have an excuse to not use it. All you
 need to do to secure your devices' communications in the simple case is to
