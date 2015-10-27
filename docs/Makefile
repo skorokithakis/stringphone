@@ -41,6 +41,10 @@ help:
 clean:
 	-rm -rf $(BUILDDIR)/*
 
+pycco:
+	pycco -d source/examples/ ../examples/*.py
+	rm source/examples/pycco.css
+
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo

@@ -3,7 +3,6 @@
 <head>
   <meta http-equiv="content-type" content="text/html;charset=utf-8">
   <title>mqtt.py</title>
-  <link rel="stylesheet" href="pycco.css">
   <style type="text/css">
 body {
   font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
@@ -11,6 +10,7 @@ body {
   line-height: 24px;
   color: #252519;
   margin: 0; padding: 0;
+  background: #f5f5ff;
 }
 a {
   color: #261a3b;
@@ -27,15 +27,18 @@ h1, h2, h3, h4, h5, h6 {
 h2, h3, h4, h5, h6 {
     margin-top: 0;
   }
+#container {
+  background: white;
+ }
 #container, div.section {
   position: relative;
 }
 #background {
-  position: fixed;
+  position: absolute;
   top: 0; left: 580px; right: 0; bottom: 0;
   background: #f5f5ff;
   border-left: 1px solid #e5e5ee;
-  z-index: -1;
+  z-index: 0;
 }
 #jump_to, #jump_page {
   background: white;
@@ -193,8 +196,8 @@ body .il { color: #666666 }                     /* Literal.Number.Integer.Long *
   </style>
 </head>
 <body>
-<div id="background"></div>
 <div id='container'>
+  <div id="background"></div>
   <div class='section'>
     <div class='docs'><h1>mqtt.py</h1></div>
   </div>
@@ -222,11 +225,10 @@ body .il { color: #666666 }                     /* Literal.Number.Integer.Long *
       <div class='octowrap'>
         <a class='octothorpe' href='#section-1'>#</a>
       </div>
-      
+      <p>A simple convenience function to avoid repetition.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">TOPIC_NAME</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">(</span><span class="n">message</span><span class="p">))</span></pre></div>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -238,11 +240,7 @@ body .il { color: #666666 }                     /* Literal.Number.Integer.Long *
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">on_connect</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">userdata</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">rc</span><span class="p">):</span>
-    <span class="s">&quot;The operations to perform when connecting to MQTT.&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Participant </span><span class="si">%s</span><span class="s">: Connected with id </span><span class="si">%s</span><span class="s">!&quot;</span> <span class="o">%</span>
-          <span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">topic</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s">&quot;hex&quot;</span><span class="p">)))</span>
-    <span class="n">client</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">TOPIC_NAME</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">TOPIC_NAME</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">(</span><span class="n">message</span><span class="p">))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -251,11 +249,10 @@ body .il { color: #666666 }                     /* Literal.Number.Integer.Long *
       <div class='octowrap'>
         <a class='octothorpe' href='#section-3'>#</a>
       </div>
-      <p>Introduce ourselves to the channel, to hopefully get other
-participants to trust us.</p>
+      <p>The operations to perform when connecting to MQTT.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">topic</span><span class="o">.</span><span class="n">construct_introduction</span><span class="p">())</span></pre></div>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">on_connect</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">userdata</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">rc</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -267,8 +264,9 @@ participants to trust us.</p>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">userdata</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-    <span class="s">&quot;The operations to perform on receiving a new message.&quot;</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Participant </span><span class="si">%s</span><span class="s">: Connected with id </span><span class="si">%s</span><span class="s">!&quot;</span> <span class="o">%</span>
+          <span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">topic</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s">&quot;hex&quot;</span><span class="p">)))</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">TOPIC_NAME</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -276,6 +274,31 @@ participants to trust us.</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>Introduce ourselves to the channel, to hopefully get other
+participants to trust us.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">topic</span><span class="o">.</span><span class="n">construct_introduction</span><span class="p">())</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>The operations to perform on receiving a new message.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">userdata</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
       </div>
       <p>Decode the payload.</p>
     </div>
@@ -285,10 +308,10 @@ participants to trust us.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-6'>
+  <div class='section' id='section-8'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-6'>#</a>
+        <a class='octothorpe' href='#section-8'>#</a>
       </div>
       <p>Try to decode the message.</p>
     </div>
@@ -298,10 +321,10 @@ participants to trust us.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-7'>
+  <div class='section' id='section-9'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-7'>#</a>
+        <a class='octothorpe' href='#section-9'>#</a>
       </div>
       <p>Print the decoded message, if we didn't drop it.</p>
     </div>
@@ -311,14 +334,15 @@ participants to trust us.</p>
         <span class="n">info</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">get_message_info</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;Participant </span><span class="si">%s</span><span class="s">: New participant with ID </span><span class="si">%s</span><span class="s"> joined, should I&quot;</span>
               <span class="s">&quot; trust them? Since you can&#39;t really reply, I&#39;ll assume you&quot;</span>
-              <span class="s">&quot; said yes.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s">&quot;participant_id&quot;</span><span class="p">],</span> <span class="s">&quot;hex&quot;</span><span class="p">)))</span></pre></div>
+              <span class="s">&quot; said yes.&quot;</span> <span class="o">%</span>
+              <span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s">&quot;participant_id&quot;</span><span class="p">],</span> <span class="s">&quot;hex&quot;</span><span class="p">)))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-8'>
+  <div class='section' id='section-10'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-8'>#</a>
+        <a class='octothorpe' href='#section-10'>#</a>
       </div>
       <p>Trust the participant that just introduced itself.</p>
     </div>
@@ -327,10 +351,10 @@ participants to trust us.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-9'>
+  <div class='section' id='section-11'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-9'>#</a>
+        <a class='octothorpe' href='#section-11'>#</a>
       </div>
       <p>Construct the reply that contains the topic key.</p>
     </div>
@@ -341,31 +365,40 @@ participants to trust us.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-10'>
+  <div class='section' id='section-12'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-10'>#</a>
+        <a class='octothorpe' href='#section-12'>#</a>
       </div>
       <p>Decode the received introduction reply.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>        <span class="n">topic</span><span class="o">.</span><span class="n">decode_introduction_reply</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-        <span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span>
-             <span class="n">topic</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;Hey guys! This is participant </span><span class="si">%s</span><span class="s">.&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">))</span></pre></div>
+        <span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">topic</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;Hey guys! This is participant </span><span class="si">%s</span><span class="s">.&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-11'>
+  <div class='section' id='section-13'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-11'>#</a>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      <p>Connect to MQTT.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
       </div>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
-    <span class="s">&quot;Connect to MQTT.&quot;</span>
-    <span class="n">client</span> <span class="o">=</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
+      <div class="highlight"><pre>    <span class="n">client</span> <span class="o">=</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
     <span class="n">client</span><span class="o">.</span><span class="n">on_connect</span> <span class="o">=</span> <span class="n">on_connect</span>
     <span class="n">client</span><span class="o">.</span><span class="n">on_message</span> <span class="o">=</span> <span class="n">on_message</span>
 

@@ -8,11 +8,16 @@ TOPIC_NAME = "stringphone"
 
 
 def send(client, message):
+    """
+    A simple convenience function to avoid repetition.
+    """
     client.publish(TOPIC_NAME, bytearray(message))
 
 
 def on_connect(client, userdata, flags, rc):
-    "The operations to perform when connecting to MQTT."
+    """
+    The operations to perform when connecting to MQTT.
+    """
     print("Participant %s: Connected with id %s!" %
           (id, codecs.encode(topic.id, "hex")))
     client.subscribe(TOPIC_NAME)
@@ -23,7 +28,9 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, msg):
-    "The operations to perform on receiving a new message."
+    """
+    The operations to perform on receiving a new message.
+    """
     # Decode the payload.
     payload = codecs.decode(msg.payload, "hex")
     try:
@@ -36,7 +43,8 @@ def on_message(client, userdata, msg):
         info = topic.get_message_info(payload)
         print("Participant %s: New participant with ID %s joined, should I"
               " trust them? Since you can't really reply, I'll assume you"
-              " said yes." % (id, codecs.encode(info["participant_id"], "hex")))
+              " said yes." %
+              (id, codecs.encode(info["participant_id"], "hex")))
         # Trust the participant that just introduced itself.
         topic.add_participant(info["participant_key"])
         # Construct the reply that contains the topic key.
@@ -45,12 +53,13 @@ def on_message(client, userdata, msg):
     except stringphone.exceptions.IntroductionReplyError:
         # Decode the received introduction reply.
         topic.decode_introduction_reply(payload)
-        send(client,
-             topic.encode("Hey guys! This is participant %s." % id))
+        send(client, topic.encode("Hey guys! This is participant %s." % id))
 
 
 def main(topic, id):
-    "Connect to MQTT."
+    """
+    Connect to MQTT.
+    """
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
