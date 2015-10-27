@@ -24,7 +24,7 @@ def on_connect(client, userdata, flags, rc):
 
     # Introduce ourselves to the channel, to hopefully get other
     # participants to trust us.
-    send(client, topic.construct_introduction())
+    send(client, topic.construct_intro())
 
 
 def on_message(client, userdata, msg):
@@ -40,21 +40,21 @@ def on_message(client, userdata, msg):
             # Print the decoded message, if we didn't drop it.
             print(message)
     except stringphone.exceptions.IntroductionError:
-        info = topic.get_message_info(payload)
+        message = stringphone.Message(payload)
         print("Participant %s: New participant with ID %s joined, should I"
               " trust them? Since you can't really reply, I'll assume you"
               " said yes." %
-              (id, codecs.encode(info["sender_id"], "hex")))
+              (id, codecs.encode(message.sender_id, "hex")))
         # Trust the participant that just introduced itself.
-        topic.add_participant(info["sender_key"])
+        topic.add_participant(message.sender_key)
         # Construct the reply that contains the topic key.
-        reply = topic.construct_introduction_reply(payload)
+        reply = topic.construct_reply(payload)
         print("Sending reply...")
         send(client, reply)
     except stringphone.exceptions.IntroductionReplyError:
         # Decode the received introduction reply.
         print("Decoding reply...")
-        topic.decode_introduction_reply(payload)
+        topic.parse_reply(payload)
         send(client, topic.encode(bytearray("Hey guys! This is participant %s." % id, "ascii")))
 
 

@@ -280,7 +280,7 @@ body .il { color: #666666 }                     /* Literal.Number.Integer.Long *
 participants to trust us.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">topic</span><span class="o">.</span><span class="n">construct_introduction</span><span class="p">())</span></pre></div>
+      <div class="highlight"><pre>    <span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">topic</span><span class="o">.</span><span class="n">construct_intro</span><span class="p">())</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -332,11 +332,11 @@ participants to trust us.</p>
     <div class='code'>
       <div class="highlight"><pre>            <span class="k">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">stringphone</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">IntroductionError</span><span class="p">:</span>
-        <span class="n">info</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">get_message_info</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">stringphone</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;Participant </span><span class="si">%s</span><span class="s">: New participant with ID </span><span class="si">%s</span><span class="s"> joined, should I&quot;</span>
               <span class="s">&quot; trust them? Since you can&#39;t really reply, I&#39;ll assume you&quot;</span>
               <span class="s">&quot; said yes.&quot;</span> <span class="o">%</span>
-              <span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s">&quot;sender_id&quot;</span><span class="p">],</span> <span class="s">&quot;hex&quot;</span><span class="p">)))</span></pre></div>
+              <span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">sender_id</span><span class="p">,</span> <span class="s">&quot;hex&quot;</span><span class="p">)))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -348,7 +348,7 @@ participants to trust us.</p>
       <p>Trust the participant that just introduced itself.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">topic</span><span class="o">.</span><span class="n">add_participant</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s">&quot;sender_key&quot;</span><span class="p">])</span></pre></div>
+      <div class="highlight"><pre>        <span class="n">topic</span><span class="o">.</span><span class="n">add_participant</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">sender_key</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -360,7 +360,7 @@ participants to trust us.</p>
       <p>Construct the reply that contains the topic key.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">reply</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">construct_introduction_reply</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+      <div class="highlight"><pre>        <span class="n">reply</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">construct_reply</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;Sending reply...&quot;</span><span class="p">)</span>
         <span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">reply</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">stringphone</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">IntroductionReplyError</span><span class="p">:</span></pre></div>
@@ -376,7 +376,7 @@ participants to trust us.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Decoding reply...&quot;</span><span class="p">)</span>
-        <span class="n">topic</span><span class="o">.</span><span class="n">decode_introduction_reply</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+        <span class="n">topic</span><span class="o">.</span><span class="n">parse_reply</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
         <span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">topic</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="s">&quot;Hey guys! This is participant </span><span class="si">%s</span><span class="s">.&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">,</span> <span class="s">&quot;ascii&quot;</span><span class="p">)))</span></pre></div>
     </div>
   </div>

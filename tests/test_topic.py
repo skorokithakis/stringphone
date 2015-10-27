@@ -2,7 +2,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import binary
 
-from stringphone import Topic
+from stringphone import Topic, Message
 from stringphone import generate_topic_key
 from stringphone.exceptions import IntroductionError, IntroductionReplyError
 
@@ -62,18 +62,18 @@ def test_discovery(bytestring):
     slave = Topic()
 
     # Construct the introduction on the slave.
-    intro = slave.construct_introduction()
+    intro = slave.construct_intro()
 
     # Attempt to read the introduction on the master.
     with pytest.raises(IntroductionError):
         master.decode(intro)
 
     # Trust the slave.
-    public_key = master.get_message_info(intro)["sender_key"]
+    public_key = Message(intro).sender_key
     master.add_participant(public_key)
 
     # Reply to the slave with the encrypted topic key.
-    reply = master.construct_introduction_reply(intro)
+    reply = master.construct_reply(intro)
 
     # Assert that decoding the reply returns None (because it's not addressed
     # to us).
@@ -84,11 +84,11 @@ def test_discovery(bytestring):
         slave.decode(reply)
 
     # Trust the master on the slave.
-    public_key = slave.get_message_info(reply)["sender_key"]
+    public_key = Message(reply).sender_key
     slave.add_participant(public_key)
 
     # Decode the introduction reply, getting the topic key.
-    slave.decode_introduction_reply(reply)
+    slave.parse_reply(reply)
 
     # Now we can decrypt all messages.
     assert slave.decode(master.encode(bytestring)) == bytestring

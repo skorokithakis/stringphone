@@ -1,25 +1,153 @@
 """
-Classes and methods relating to the topic and its participants.
+lasses and methods relating to the topic and its participants.
 """
-import hashlib
+from .crypto import (
+        PARTICIPANT_ID_LENGTH,
+        AsymmetricCrypto,
+        Signer,
+        SymmetricCrypto,
+        Verifier,
+        _get_id_from_key,
+        generate_signing_key_seed,
+    )
+from .exceptions import (
+        IntroductionError,
+        IntroductionReplyError,
+        MissingTopicKeyError,
+        UntrustedKeyError
+    )
 
-from .crypto import AsymmetricCrypto, Signer, SymmetricCrypto, Verifier, generate_signing_key_seed
-from .exceptions import IntroductionError, IntroductionReplyError, MalformedMessageError, MissingTopicKeyError, UntrustedKeyError
 
-PARTICIPANT_ID_LENGTH = 16
-
-
-def _get_id_from_key(public_key):
-    """
-    Derive the participant's ID from the public key.
-
-    The ID is the first %s bytes of the SHA256 hash of the participant's public
-    key.
-    """ % PARTICIPANT_ID_LENGTH
-    return hashlib.sha256(public_key).digest()[:PARTICIPANT_ID_LENGTH]
+MESSAGE_UNKNOWN = b"u"
+MESSAGE_SIMPLE = b"s"
+MESSAGE_INTRO = b"i"
+MESSAGE_REPLY = b"r"
 
 
-class Topic:
+class Message(object):
+    def __init__(self, message):
+        self._message = message
+
+    @property
+    def type(self):
+        """
+        The type of the message.
+
+        :rtype: int
+        """
+        for message_type in (MESSAGE_SIMPLE, MESSAGE_INTRO, MESSAGE_REPLY):
+            if self._message.startswith(message_type):
+                return message_type
+        return MESSAGE_UNKNOWN
+
+    @property
+    def signed_payload(self):
+        """
+        The signed payload (signature + ciphertext).
+
+        :rtype: bytes
+        :raises ValueError: if the given message type does not have this
+            property.
+        """
+        if self.type != MESSAGE_SIMPLE:
+            raise ValueError("Message is of the wrong type for this property.")
+        return self._message[1:]
+
+    @property
+    def ciphertext(self):
+        """
+        The ciphertext.
+
+        :rtype: bytes
+        :raises ValueError: if the given message type does not have this
+            property.
+        """
+        if self.type != MESSAGE_SIMPLE:
+            raise ValueError("Message is of the wrong type for this property.")
+        return self._message[65 + PARTICIPANT_ID_LENGTH:]
+
+    @property
+    def encrypted_topic_key(self):
+        """
+        The encrypted topic key.
+
+        :rtype: bytes
+        :raises ValueError: if the given message type does not have this
+            property.
+        """
+        if self.type == MESSAGE_REPLY:
+            return self._message[17:89]
+        else:
+            raise ValueError("Message is of the wrong type for this property.")
+
+    @property
+    def recipient_id(self):
+        """
+        The ID of the recipient.
+
+        :rtype: bytes
+        :raises ValueError: if the given message type does not have this
+            property.
+        """
+        if self.type == MESSAGE_REPLY:
+            return self._message[1:17]
+        else:
+            raise ValueError("Message is of the wrong type for this property.")
+
+    @property
+    def sender_id(self):
+        """
+        The ID of the sender.
+
+        :rtype: bytes
+        :raises ValueError: if the given message type does not have this
+            property.
+        """
+        if self.type == MESSAGE_SIMPLE:
+            return self._message[65:81]
+        elif self.type == MESSAGE_INTRO:
+            return _get_id_from_key(self.sender_key)
+        elif self.type == MESSAGE_REPLY:
+            return _get_id_from_key(self.sender_key)
+        else:
+            raise ValueError("Message is of the wrong type for this property.")
+
+    @property
+    def sender_key(self):
+        """
+        The public key of the sender.
+
+        :rtype: bytes
+        :raises ValueError: if the given message type does not have this
+            property.
+        """
+        if self.type == MESSAGE_SIMPLE:
+            return self._message[65:81]
+        elif self.type == MESSAGE_INTRO:
+            return self._message[1:33]
+        elif self.type == MESSAGE_REPLY:
+            return self._message[121:153]
+        else:
+            raise ValueError("Message is of the wrong type for this property.")
+
+    @property
+    def encryption_key(self):
+        """
+        The encryption key that encrypts the topic key.
+
+        :rtype: bytes
+        :raises ValueError: if the given message type does not have this
+            property.
+        """
+        if self.type == MESSAGE_INTRO:
+            return self._message[33:]
+        elif self.type == MESSAGE_REPLY:
+            return self._message[89:121]
+        else:
+            raise ValueError("Message is of the wrong type for this property.")
+
+
+class Topic(object):
     """
     A topic is the main avenue of communication. It can be any one-to-many
     channel, such as an MQTT topic, an IRC chat room, or even a TCP socket
@@ -59,27 +187,56 @@ class Topic:
             participants = {}
 
         self._participants = participants
-
-        self._init_symmetric_crypto(topic_key)
-        self._signer = Signer(signing_key_seed)
-        self._id = _get_id_from_key(self._signer.public_key)
         self._asymmetric_crypto = AsymmetricCrypto()
 
-    def _init_symmetric_crypto(self, topic_key):
+        self.topic_key = topic_key
+        self._signer = Signer(signing_key_seed)
+        self._id = _get_id_from_key(self._signer.public_key)
+
+    #########
+    # Various properties
+    #
+    @property
+    def id(self):
+        """
+        Our ID.
+
+        :rtype: bytes
+        """
+        return self._id
+
+    @property
+    def public_key(self):
+        """
+        Our public key.
+
+        :rtype: bytes
+        """
+        return self._signer.public_key
+
+    @property
+    def topic_key(self):
+        """
+        Return the topic encryption key.
+
+        :rtype: bytes
+        """
+        return self._topic_key
+
+    @topic_key.setter
+    def topic_key(self, value):
         """
         Initialize the symmetric crypto with either the topic key, if known, or
         None if unknown. If we don't know the topic key yet, we must perform an
         introduction and hope one of the other participants sends it to us.
 
-        :param bytes topic_key: The symmetric key of the topic, or None.
+        :param bytes value: The symmetric key of the topic, or None.
         """
-        self._topic_key = topic_key
-        if topic_key is None:
-            # We don't have the topic key yet, we're going to introduce
-            # ourselves to other devices hoping to get a key back.
+        self._topic_key = value
+        if value is None:
             self._symmetric_crypto = None
         else:
-            self._symmetric_crypto = SymmetricCrypto(topic_key)
+            self._symmetric_crypto = SymmetricCrypto(value)
 
     #########
     # Participant methods
@@ -109,63 +266,19 @@ class Topic:
         return self._participants
 
     #########
-    # Introduction methods
+    # Discovery methods
     #
-    def _unpack_message(self, message):
-        """
-        Unpack the information contained in the message.
-
-        :param bytes message: The message to unpack.
-
-        :return dict: The unpacked data.
-        """
-        data = {}
-
-        if message.startswith(b"i"):
-            if len(message) != 65:
-                raise MalformedMessageError("Malformed message.")
-            data["sender_key"] = message[1:33]
-            data["encryption_key"] = message[33:]
-        elif message.startswith(b"r"):
-            if len(message) != 153:
-                raise MalformedMessageError("Malformed message.")
-            data["recipient_id"] = message[1:17]
-            data["encrypted_topic_key"] = message[17:89]
-            data["encryption_key"] = message[89:121]
-            data["sender_key"] = message[121:]
-        elif message.startswith(b"m"):
-            if len(message) < 81:
-                raise MalformedMessageError("Malformed message.")
-            data["sender_id"] = message[65:81]
-
-        if "sender_key" in data and "sender_id" not in data:
-            data["sender_id"] = _get_id_from_key(data["sender_key"])
-
-        return data
-
-    def construct_introduction(self):
+    def construct_intro(self):
         """
         Generate an introduction of ourselves to send to other devices.
 
         :returns: The message to broadcast.
         :rtype: bytes
         """
-        return b"i" + self._signer.public_key + self._asymmetric_crypto.public_key
+        return MESSAGE_INTRO + self.public_key + \
+            self._asymmetric_crypto.public_key
 
-    def get_message_info(self, message):
-        """
-        Return the participant information from the given introduction or
-        introduction reply so we can add the participant to our trusted
-        participants.
-
-        :param bytes message: The raw introduction message from the channel and
-            returns the participant's ID and their public key.
-        :returns: The discovery data.
-        :rtype: dict
-        """
-        return self._unpack_message(message)
-
-    def construct_introduction_reply(self, message):
+    def construct_reply(self, message):
         """
         Generate a reply to an introduction. This gives the party that was just
         introduced **FULL ACCESS** to the topic key and all decrypted messages.
@@ -174,35 +287,40 @@ class Topic:
         :returns: The reply message to broadcast.
         :rtype: bytes
         """
-        if not self.has_topic_key:
+        if not self.topic_key:
             raise RuntimeError(
                 "Cannot construct introduction reply, topic key is unknown.")
         # The public key of the participant requesting the topic key.
-        data = self._unpack_message(message)
+        message = Message(message)
         encrypted_topic_key = self._asymmetric_crypto.encrypt(
-            self._topic_key, data["encryption_key"])
-        return b"r" + data["sender_id"] + encrypted_topic_key + \
-               self._asymmetric_crypto.public_key + self._signer.public_key
+                self.topic_key,
+                message.encryption_key
+            )
+        return MESSAGE_REPLY + message.sender_id + encrypted_topic_key + \
+            self._asymmetric_crypto.public_key + self.public_key
 
-    def decode_introduction_reply(self, message):
+    def parse_reply(self, message):
         """
         Decode the reply to an introduction. If the reply contains a valid
         encrypted topic key that is addressed to us, add it to the topic. If we
         already know the topic key, ignore this message.
 
         :param bytes message: The raw reply message from the channel.
+        :returns: Whether the retrieval of the topic key was successful.
+        :rtype: bool
         """
-        data = self._unpack_message(message)
-        if self.has_topic_key or data["recipient_id"] != self.id:
+        message = Message(message)
+        if self.topic_key or message.recipient_id != self.id:
             # We already know the topic key or the message wasn't for us,
             # disregard.
-            return
+            return False
 
         topic_key = self._asymmetric_crypto.decrypt(
-            data["encrypted_topic_key"],
-            data["encryption_key"]
+            message.encrypted_topic_key,
+            message.encryption_key
         )
-        self._init_symmetric_crypto(topic_key)
+        self.topic_key = topic_key
+        return True
 
     #########
     # Encoding/decoding methods
@@ -216,13 +334,13 @@ class Topic:
         :returns: The encrypted ciphertext to broadcast.
         :rtype: bytes
         """
-        if not self.has_topic_key:
+        if not self.topic_key:
             raise MissingTopicKeyError(
                 "Cannot encode data without a topic key.")
 
         ciphertext = self.id + self._symmetric_crypto.encrypt(message)
         signed = self._signer.sign(ciphertext)
-        return b"m" + signed
+        return MESSAGE_SIMPLE + signed
 
     def decode(self, message, naive=False, ignore_untrusted=False):
         """
@@ -241,28 +359,24 @@ class Topic:
         :returns: The decrypted and (optionally) verified plaintext.
         :rtype: bytes
         """
+        message = Message(message)
+
         # Ignore our own messages.
-        if self.get_message_info(message).get("sender_id") == self.id:
+        if message.sender_id == self.id:
+            print("I sent this.")
             return
 
-        if message.startswith(b"i") and self.has_topic_key:
+        if message.type == MESSAGE_INTRO and self.topic_key:
             # This is an introduction.
             raise IntroductionError("The received message is an introduction.")
-        elif message.startswith(b"r") and not self.has_topic_key:
+        elif message.type == MESSAGE_REPLY and not self.topic_key:
             # This is a reply to an introduction.
             raise IntroductionReplyError(
                 "The received message is an introduction reply.")
-        elif message.startswith(b"m"):
-            message = message[1:]
-            # Split the message envelope (signature, sender_id, ciphertext)
-            # into two of its constituent parts.
-            sender_id, ciphertext = message[
-                64:64 + PARTICIPANT_ID_LENGTH], message[64 +
-                                                        PARTICIPANT_ID_LENGTH:]
-
+        elif message.type == MESSAGE_SIMPLE:
             if not naive:
                 # Verify the signature.
-                if sender_id not in self._participants:
+                if message.sender_id not in self._participants:
                     if ignore_untrusted:
                         # We want to just drop messages from unknown
                         # participants on the floor.
@@ -270,40 +384,8 @@ class Topic:
                     else:
                         raise UntrustedKeyError(
                             "Verification key for participant not found.")
-                sender_key = self._participants[sender_id]
+                sender_key = self._participants[message.sender_id]
                 verifier = Verifier(sender_key)
-                verifier.verify(message)
-            plaintext = self._symmetric_crypto.decrypt(ciphertext)
+                verifier.verify(message.signed_payload)
+            plaintext = self._symmetric_crypto.decrypt(message.ciphertext)
             return plaintext
-
-    #########
-    # Various
-    #
-    @property
-    def public_key(self):
-        """
-        Our public key.
-
-        :rtype: bytes
-        """
-        return self._signer.public_key
-
-    @property
-    def id(self):
-        """
-        Our ID.
-
-        :rtype: bytes
-        """
-        return self._id
-
-    @property
-    def has_topic_key(self):
-        """
-        Whether we know the topic key and can encrypt and decrypt messages to
-        this topic or not.
-
-        :rtype: bool
-        """
-
-        return bool(self._topic_key)

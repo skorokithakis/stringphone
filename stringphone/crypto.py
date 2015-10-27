@@ -1,6 +1,8 @@
 """
 Symmetric and asymmetric cryptography- and signing-related classes and methods.
 """
+import hashlib
+
 import nacl.encoding
 import nacl.exceptions
 import nacl.secret
@@ -10,6 +12,18 @@ import nacl.utils
 import six
 
 from .exceptions import BadSignatureError
+
+PARTICIPANT_ID_LENGTH = 16
+
+
+def _get_id_from_key(public_key):
+    """
+    Derive the participant's ID from the public key.
+
+    The ID is the first %s bytes of the SHA256 hash of the participant's public
+    key.
+    """ % PARTICIPANT_ID_LENGTH
+    return hashlib.sha256(public_key).digest()[:PARTICIPANT_ID_LENGTH]
 
 
 def generate_topic_key():
