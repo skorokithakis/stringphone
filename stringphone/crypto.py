@@ -23,12 +23,12 @@ def generate_topic_key():
     return nacl.utils.random(nacl.secret.SecretBox.KEY_SIZE)
 
 
-def generate_signing_key():
+def generate_signing_key_seed():
     """
-    Generate and return a new signing key. The generated key is
+    Generate and return a new signing key seed. The generated seed is
     cryptographically secure.
 
-    :return: A cryptographically secure random topic key.
+    :return: A cryptographically secure random signing key seed.
     :rtype: bytes
     """
     return nacl.signing.SigningKey.generate().encode()

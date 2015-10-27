@@ -114,3 +114,5 @@ Here's what you need to watch out for:
    introduction
    protocol
    API documentation <stringphone>
+
+   examples

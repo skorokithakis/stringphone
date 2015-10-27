@@ -3,8 +3,10 @@ Classes and methods relating to the topic and its participants.
 """
 import hashlib
 
+import nacl.exceptions
+
 from .crypto import AsymmetricCrypto, Signer, SymmetricCrypto, Verifier
-from .exceptions import IntroductionError, IntroductionReplyError, UntrustedKeyError
+from .exceptions import IntroductionError, IntroductionReplyError, MissingTopicKeyError, UntrustedKeyError
 
 PARTICIPANT_ID_LENGTH = 16
 
@@ -26,13 +28,14 @@ class Topic:
     (one-to-one is a subset of one-to-many communication).
     """
 
-    def __init__(self, signing_key, topic_key=None, participants=None):
+    def __init__(self, signing_key_seed, topic_key=None, participants=None):
         if participants is None:
             participants = {}
         self._participants = participants
 
         self._init_symmetric_crypto(topic_key)
-        self._signer = Signer(signing_key)
+        self._signer = Signer(signing_key_seed)
+        self._id = _get_id_from_key(self._signer.public_key)
         self._asymmetric_crypto = AsymmetricCrypto()
 
     def _init_symmetric_crypto(self, topic_key):
@@ -81,10 +84,9 @@ class Topic:
     #########
     # Introduction methods
     #
-    def _unpack_introduction(self, message):
+    def _unpack_message(self, message):
         """
-        Unpack the signing key and encryption key of the participant that is
-        introducing itself from the message.
+        Unpack the information contained in the message.
 
         :param bytes message: The message to unpack.
 
@@ -93,6 +95,7 @@ class Topic:
         signing_key = None
         encryption_key = None
         encrypted_topic_key = None
+        participant_id = None
 
         if message.startswith(b"i"):
             signing_key = message[1:33]
@@ -101,11 +104,16 @@ class Topic:
             encrypted_topic_key = message[1:73]
             encryption_key = message[73:105]
             signing_key = message[105:]
+        elif message.startswith(b"m"):
+            participant_id = message[65:81]
 
         data = {}
         if signing_key:
             data["participant_id"] = _get_id_from_key(signing_key)
-            data["signing_key"] = signing_key
+            data["participant_key"] = signing_key
+
+        if participant_id:
+            data["participant_id"] = participant_id
 
         if encryption_key:
             data["encryption_key"] = encryption_key
@@ -124,7 +132,7 @@ class Topic:
         """
         return b"i" + self._signer.public_key + self._asymmetric_crypto.public_key
 
-    def get_discovery_info(self, message):
+    def get_message_info(self, message):
         """
         Return the participant information from the given introduction or
         introduction reply so we can add the participant to our trusted
@@ -135,11 +143,7 @@ class Topic:
         :returns: The discovery data.
         :rtype: dict
         """
-        data = self._unpack_introduction(message)
-        return {
-            "participant_id": data["participant_id"],
-            "participant_key": data["signing_key"]
-        }
+        return self._unpack_message(message)
 
     def construct_introduction_reply(self, message):
         """
@@ -152,27 +156,32 @@ class Topic:
         """
         if self._topic_key is None:
             raise RuntimeError(
-                "Cannot construct introduction reply, topic key is unknown."
-            )
+                "Cannot construct introduction reply, topic key is unknown.")
         # The public key of the participant requesting the topic key.
-        data = self._unpack_introduction(message)
+        data = self._unpack_message(message)
         encrypted_topic_key = self._asymmetric_crypto.encrypt(
-            self._topic_key, data["encryption_key"]
-        )
+            self._topic_key, data["encryption_key"])
         return b"r" + encrypted_topic_key + self._asymmetric_crypto.public_key + self._signer.public_key
 
     def decode_introduction_reply(self, message):
         """
         Decode the reply to an introduction. If the reply contains a valid
-        encrypted topic key that is addressed to us, add it to the topic.
+        encrypted topic key that is addressed to us, add it to the topic. If we
+        already know the topic key, ignore this message.
 
         :param bytes message: The raw reply message from the channel.
         """
-        data = self._unpack_introduction(message)
-        topic_key = self._asymmetric_crypto.decrypt(
-            data["encrypted_topic_key"], data["encryption_key"]
-        )
-        self._init_symmetric_crypto(topic_key)
+        if self._topic_key:
+            # We already know the topic key, disregard.
+            return
+        data = self._unpack_message(message)
+        try:
+            topic_key = self._asymmetric_crypto.decrypt(
+                data["encrypted_topic_key"], data["encryption_key"])
+        except nacl.exceptions.CryptoError:
+            pass
+        else:
+            self._init_symmetric_crypto(topic_key)
 
     #########
     # Encoding/decoding methods
@@ -186,6 +195,10 @@ class Topic:
         :returns: The encrypted ciphertext to broadcast.
         :rtype: bytes
         """
+        if self._topic_key is None:
+            raise MissingTopicKeyError(
+                "Cannot encode data without a topic key.")
+
         ciphertext = self.id + self._symmetric_crypto.encrypt(message)
         signed = self._signer.sign(ciphertext)
         return b"m" + signed
@@ -207,14 +220,17 @@ class Topic:
         :returns: The decrypted and (optionally) verified plaintext.
         :rtype: bytes
         """
+        # Ignore our own messages.
+        if self.get_message_info(message).get("participant_id") == self.id:
+            return
+
         if message.startswith(b"i") and self._topic_key:
             # This is an introduction.
             raise IntroductionError("The received message is an introduction.")
         elif message.startswith(b"r") and self._topic_key is None:
             # This is a reply to an introduction.
             raise IntroductionReplyError(
-                "The received message is an introduction reply."
-            )
+                "The received message is an introduction reply.")
         elif message.startswith(b"m"):
             message = message[1:]
             # Split the message envelope (signature, participant_id, ciphertext)
@@ -222,6 +238,7 @@ class Topic:
             participant_id, ciphertext = message[
                 64:64 + PARTICIPANT_ID_LENGTH], message[64 +
                                                         PARTICIPANT_ID_LENGTH:]
+
             if not naive:
                 # Verify the signature.
                 if participant_id not in self._participants:
@@ -231,8 +248,7 @@ class Topic:
                         return
                     else:
                         raise UntrustedKeyError(
-                            "Verification key for participant not found."
-                        )
+                            "Verification key for participant not found.")
                 participant_key = self._participants[participant_id]
                 verifier = Verifier(participant_key)
                 verifier.verify(message)
@@ -258,4 +274,4 @@ class Topic:
 
         :rtype: bytes
         """
-        return _get_id_from_key(self.public_key)
+        return self._id

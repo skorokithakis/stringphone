@@ -13,6 +13,11 @@ class IntroductionReplyError(Exception):
     pass
 
 
+class MissingTopicKeyError(Exception):
+    "Raised when trying to encode data without the topic key."
+    pass
+
+
 class UntrustedKeyError(Exception):
     "Raised when the verification key for a signed message could not be found."
     pass

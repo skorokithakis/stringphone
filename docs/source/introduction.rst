@@ -10,7 +10,7 @@ We'll start with a simple case. We will create two participants, one called *Ali
 know the topic key already (they have communicated beforehand over a secure channel and shared the topic key.  Let's
 get them to exchange messages securely::
 
-    >>> from stringphone import Topic, generate_signing_key, generate_topic_key
+    >>> from stringphone import Topic, generate_signing_key_seed, generate_topic_key
 
     # Let's generate a topic key to share between the participants.
     #  generate_topic_key() uses a cryptographically secure RNG, so
@@ -21,8 +21,8 @@ get them to exchange messages securely::
     ']j\x9b\xf7\xe77\x07h\xdcF\x82\x95\x0fo\x06\x90\xe1]R\xff\x8a\xeal\xd0\xef\x89J\xbd\x97\xf1[\xb4'
 
     # Give Alice and Bob one secure signing key each.
-    >>> alice = Topic(generate_signing_key(), topic_key)
-    >>> bob = Topic(generate_signing_key(), topic_key)
+    >>> alice = Topic(generate_signing_key_seed(), topic_key)
+    >>> bob = Topic(generate_signing_key_seed(), topic_key)
 
     # Alice encodes a message to send to Bob. This encrypts and signs the message.
     >>> alice_message = alice.encode("Hi Bob!")
