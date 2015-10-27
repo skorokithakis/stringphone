@@ -69,18 +69,22 @@ def test_discovery(bytestring):
         master.decode(intro)
 
     # Trust the slave.
-    public_key = master.get_message_info(intro)["participant_key"]
+    public_key = master.get_message_info(intro)["sender_key"]
     master.add_participant(public_key)
 
     # Reply to the slave with the encrypted topic key.
     reply = master.construct_introduction_reply(intro)
 
-    # Assert that the reply raises IntroductionReplyError.
+    # Assert that decoding the reply returns None (because it's not addressed
+    # to us).
+
+    # Assert that the reply raises IntroductionReplyError (because it's a reply,
+    # not a simple message).
     with pytest.raises(IntroductionReplyError):
         slave.decode(reply)
 
     # Trust the master on the slave.
-    public_key = slave.get_message_info(reply)["participant_key"]
+    public_key = slave.get_message_info(reply)["sender_key"]
     slave.add_participant(public_key)
 
     # Decode the introduction reply, getting the topic key.

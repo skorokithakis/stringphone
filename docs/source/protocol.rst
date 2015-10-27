@@ -73,12 +73,12 @@ according to its type. Details on all message types are elaborated on below.
 Message
 ^^^^^^^
 
-The simple message is the main way of communication. It contains the ID of the
-participant that sent the message (for identification and as a way to find the
-public key for verification), a signature and the ciphertext.
+The simple message is the main way of communication. It contains:
 
-The entire message (including the participant ID and ciphertext) is signed by
-the participant's signing key.
+* The ID of the sender of the message (for identification and as a way to select
+  the right public key for verification).
+* The ciphertext of the intended message.
+* A signature of all of the above, signed with the participant's signing key.
 
 +-----------+------------+-----------+----------------+-----------------------+
 | **Part**  | Type ("m") | Signature | Participant ID | Ciphertext            |
@@ -90,8 +90,11 @@ the participant's signing key.
 Introduction
 ^^^^^^^^^^^^
 
-The introduction contains the participant's signing key (from which the
-participant's ID can be derived), and their encryption key.
+The introduction contains:
+
+* The sender's signing key (from which the sender's ID can be derived).
+* An ephemeral encryption key to which replies with the topic key can be
+  encrypted.
 
 +-----------+------------+-------------+----------------+
 | **Part**  | Type ("i") | Signing key | Encryption key |
@@ -103,12 +106,18 @@ participant's ID can be derived), and their encryption key.
 Reply
 ^^^^^
 
-The introduction reply contains the encrypted topic key for the current topic,
-the public encryption key that was used to encrypt it (for signature
-verification) and the signing key of the participant who sent the reply.
+The introduction reply contains:
 
-+-----------+------------+---------------------+----------------+-------------+
-| **Part**  | Type ("r") | Encrypted topic key | Encryption key | Signing key |
-+-----------+------------+---------------------+----------------+-------------+
-| **Size**  | 1 byte     | 72 bytes            | 32 bytes       | 32 bytes    |
-+-----------+------------+---------------------+----------------+-------------+
+* The ID of the intended recipient (i.e. the participant that sent the original
+  introduction that this reply is for).
+* The encrypted topic key for the current topic, so the recipient can
+  participate in the topic.
+* The ephemeral public encryption key that the sender used to encrypt the topic
+  key (for verification purposes).
+* The sender's signing key (from which the sender's ID can be derived).
+
++-----------+------------+--------------+---------------------+----------------+-------------+
+| **Part**  | Type ("r") | Recipient ID | Encrypted topic key | Encryption key | Signing key |
++-----------+------------+--------------+---------------------+----------------+-------------+
+| **Size**  | 1 byte     |     16 bytes |            72 bytes | 32 bytes       | 32 bytes    |
++-----------+------------+--------------+---------------------+----------------+-------------+

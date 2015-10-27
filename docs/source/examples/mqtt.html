@@ -3,14 +3,14 @@
 <head>
   <meta http-equiv="content-type" content="text/html;charset=utf-8">
   <title>mqtt.py</title>
-  <style type="text/css">
+  <style>
+/*--------------------- Layout and Typography ----------------------------*/
 body {
   font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
   font-size: 16px;
   line-height: 24px;
   color: #252519;
   margin: 0; padding: 0;
-  background: #f5f5ff;
 }
 a {
   color: #261a3b;
@@ -27,18 +27,15 @@ h1, h2, h3, h4, h5, h6 {
 h2, h3, h4, h5, h6 {
     margin-top: 0;
   }
-#container {
-  background: white;
- }
 #container, div.section {
   position: relative;
 }
 #background {
-  position: absolute;
+  position: fixed;
   top: 0; left: 580px; right: 0; bottom: 0;
   background: #f5f5ff;
   border-left: 1px solid #e5e5ee;
-  z-index: 0;
+  z-index: -1;
 }
 #jump_to, #jump_page {
   background: white;
@@ -193,11 +190,11 @@ body .vc { color: #19469D }                     /* Name.Variable.Class */
 body .vg { color: #19469D }                     /* Name.Variable.Global */
 body .vi { color: #19469D }                     /* Name.Variable.Instance */
 body .il { color: #666666 }                     /* Literal.Number.Integer.Long */
-  </style>
+</style>
 </head>
 <body>
+<div id="background"></div>
 <div id='container'>
-  <div id="background"></div>
   <div class='section'>
     <div class='docs'><h1>mqtt.py</h1></div>
   </div>
@@ -240,7 +237,7 @@ body .il { color: #666666 }                     /* Literal.Number.Integer.Long *
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">TOPIC_NAME</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">(</span><span class="n">message</span><span class="p">))</span></pre></div>
+      <div class="highlight"><pre>    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">TOPIC_NAME</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">(</span><span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="s">&quot;hex&quot;</span><span class="p">)))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -335,7 +332,7 @@ participants to trust us.</p>
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;Participant </span><span class="si">%s</span><span class="s">: New participant with ID </span><span class="si">%s</span><span class="s"> joined, should I&quot;</span>
               <span class="s">&quot; trust them? Since you can&#39;t really reply, I&#39;ll assume you&quot;</span>
               <span class="s">&quot; said yes.&quot;</span> <span class="o">%</span>
-              <span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s">&quot;participant_id&quot;</span><span class="p">],</span> <span class="s">&quot;hex&quot;</span><span class="p">)))</span></pre></div>
+              <span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">codecs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s">&quot;sender_id&quot;</span><span class="p">],</span> <span class="s">&quot;hex&quot;</span><span class="p">)))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -347,7 +344,7 @@ participants to trust us.</p>
       <p>Trust the participant that just introduced itself.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">topic</span><span class="o">.</span><span class="n">add_participant</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s">&quot;participant_key&quot;</span><span class="p">])</span></pre></div>
+      <div class="highlight"><pre>        <span class="n">topic</span><span class="o">.</span><span class="n">add_participant</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s">&quot;sender_key&quot;</span><span class="p">])</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -360,6 +357,7 @@ participants to trust us.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>        <span class="n">reply</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">construct_introduction_reply</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Sending reply...&quot;</span><span class="p">)</span>
         <span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">reply</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">stringphone</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">IntroductionReplyError</span><span class="p">:</span></pre></div>
     </div>
@@ -373,8 +371,9 @@ participants to trust us.</p>
       <p>Decode the received introduction reply.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">topic</span><span class="o">.</span><span class="n">decode_introduction_reply</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-        <span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">topic</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;Hey guys! This is participant </span><span class="si">%s</span><span class="s">.&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">))</span></pre></div>
+      <div class="highlight"><pre>        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Decoding reply...&quot;</span><span class="p">)</span>
+        <span class="n">topic</span><span class="o">.</span><span class="n">decode_introduction_reply</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+        <span class="n">send</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">topic</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="s">&quot;Hey guys! This is participant </span><span class="si">%s</span><span class="s">.&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">,</span> <span class="s">&quot;ascii&quot;</span><span class="p">)))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>

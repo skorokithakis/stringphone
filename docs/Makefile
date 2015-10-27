@@ -43,6 +43,8 @@ clean:
 
 pycco:
 	pycco -d source/examples/ ../examples/*.py
+	sed -i 's/\(<link.*>\)/<style>\n<\/style>/' source/examples/*.html
+	sed -i '/<style>/ r source/examples/pycco.css' source/examples/*.html
 	rm source/examples/pycco.css
 
 html:

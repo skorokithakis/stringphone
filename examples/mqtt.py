@@ -11,7 +11,7 @@ def send(client, message):
     """
     A simple convenience function to avoid repetition.
     """
-    client.publish(TOPIC_NAME, bytearray(message))
+    client.publish(TOPIC_NAME, bytearray(codecs.encode(message, "hex")))
 
 
 def on_connect(client, userdata, flags, rc):
@@ -44,16 +44,18 @@ def on_message(client, userdata, msg):
         print("Participant %s: New participant with ID %s joined, should I"
               " trust them? Since you can't really reply, I'll assume you"
               " said yes." %
-              (id, codecs.encode(info["participant_id"], "hex")))
+              (id, codecs.encode(info["sender_id"], "hex")))
         # Trust the participant that just introduced itself.
-        topic.add_participant(info["participant_key"])
+        topic.add_participant(info["sender_key"])
         # Construct the reply that contains the topic key.
         reply = topic.construct_introduction_reply(payload)
+        print("Sending reply...")
         send(client, reply)
     except stringphone.exceptions.IntroductionReplyError:
         # Decode the received introduction reply.
+        print("Decoding reply...")
         topic.decode_introduction_reply(payload)
-        send(client, topic.encode("Hey guys! This is participant %s." % id))
+        send(client, topic.encode(bytearray("Hey guys! This is participant %s." % id, "ascii")))
 
 
 def main(topic, id):

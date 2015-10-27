@@ -13,6 +13,11 @@ class IntroductionReplyError(Exception):
     pass
 
 
+class MalformedMessageError(Exception):
+    "Raised when attempting to decode a malformed message."
+    pass
+
+
 class MissingTopicKeyError(Exception):
     "Raised when trying to encode data without the topic key."
     pass
