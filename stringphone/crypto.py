@@ -82,6 +82,15 @@ class AsymmetricCrypto:
 
 class SymmetricCrypto:
     def __init__(self, key):
+        """
+        Instantiate a new SymmetricCrypto object.
+
+        SymmetricCrypto performs symmetric encryption and decryption of byte
+        arrays.
+
+        :param bytes key: The key to use for encryption and decryption. Use
+            `generate_topic_key` to generate this.
+        """
         self._box = nacl.secret.SecretBox(key)
 
     def encrypt(self, plaintext):
@@ -113,7 +122,8 @@ class Signer:
         """
         Instantiate a new Signer.
 
-        :param bytes private_key: The private signing key to use.
+        :param bytes private_key: The private signing key to use. Use
+            `generate_signing_key_seed` to generate this.
         """
         self._signer = nacl.signing.SigningKey(private_key)
 
