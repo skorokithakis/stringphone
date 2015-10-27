@@ -6,8 +6,9 @@ Introduction
 Getting started
 ---------------
 
-We'll start with a simple case. We will create two participants, one called *Alice* and one called *Bob*, both of whom
-know the topic key already (they have communicated beforehand over a secure channel and shared the topic key.  Let's
+We'll start with a simple case. We will create two participants, one called
+*Alice* and one called *Bob*, both of whom know the topic key already (they have
+communicated beforehand over a secure channel and shared the topic key.  Let's
 get them to exchange messages securely::
 
     >>> from stringphone import Topic, generate_signing_key_seed, generate_topic_key
@@ -20,11 +21,17 @@ get them to exchange messages securely::
     >>> topic_key
     ']j\x9b\xf7\xe77\x07h\xdcF\x82\x95\x0fo\x06\x90\xe1]R\xff\x8a\xeal\xd0\xef\x89J\xbd\x97\xf1[\xb4'
 
-    # Give Alice and Bob one secure signing key each.
-    >>> alice = Topic(generate_signing_key_seed(), topic_key)
-    >>> bob = Topic(generate_signing_key_seed(), topic_key)
+    # Each participant generates a seed for their signing key and stores it.
+    # This key is their identity, so they must keep it completely secret from
+    # everyone, and safe.
+    >>> alice_seed = generate_signing_key_seed()
+    >>> bob_seed = generate_signing_key_seed()
 
-    # Alice encodes a message to send to Bob. This encrypts and signs the message.
+    # Give Alice and Bob their seeds, and the shared topic key.
+    >>> alice = Topic(alice_seed, topic_key)
+    >>> bob = Topic(bob_seed, topic_key)
+
+    # Alice encodes a message to send to Bob. encode() encrypts and signs it.
     >>> alice_message = alice.encode("Hi Bob!")
 
     # Bob will try to decode the message.
@@ -74,4 +81,14 @@ get them to exchange messages securely::
 
     # That's it for simple communication! We can look into discovering participants
     # and how to trust them in the "Discovery" section.
+
+
+Discovery
+---------
+
+Discovery is a way for participants to join the topic without any prior
+knowledge, and for them to trust each other. In short, when a participant joins
+a topic, it can request the topic key from the other participants already in
+that topic. It can also request that new participants trust its public key so
+they can later verify its messages.
 

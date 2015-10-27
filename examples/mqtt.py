@@ -81,7 +81,6 @@ if __name__ == "__main__":
     else:
         topic_key = None
 
-    topic = stringphone.Topic(stringphone.generate_signing_key_seed(),
-                              topic_key)
+    topic = stringphone.Topic(topic_key=topic_key)
 
     main(topic, id)

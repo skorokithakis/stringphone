@@ -5,9 +5,9 @@ key = stringphone.generate_topic_key()
 
 # Instantiate three participants, each with a copy of the key. In practice,
 # these will be distinct devices.
-t1 = stringphone.Topic(stringphone.generate_signing_key_seed(), key)
-t2 = stringphone.Topic(stringphone.generate_signing_key_seed(), key)
-t3 = stringphone.Topic(stringphone.generate_signing_key_seed(), key)
+t1 = stringphone.Topic(topic_key=key)
+t2 = stringphone.Topic(topic_key=key)
+t3 = stringphone.Topic(topic_key=key)
 
 # Encode a message to the topic.
 encoded1 = t1.encode(b"Hey guys! This is t1!")

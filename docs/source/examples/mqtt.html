@@ -420,8 +420,7 @@ participants to trust us.</p>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">topic_key</span> <span class="o">=</span> <span class="bp">None</span>
 
-    <span class="n">topic</span> <span class="o">=</span> <span class="n">stringphone</span><span class="o">.</span><span class="n">Topic</span><span class="p">(</span><span class="n">stringphone</span><span class="o">.</span><span class="n">generate_signing_key_seed</span><span class="p">(),</span>
-                              <span class="n">topic_key</span><span class="p">)</span>
+    <span class="n">topic</span> <span class="o">=</span> <span class="n">stringphone</span><span class="o">.</span><span class="n">Topic</span><span class="p">(</span><span class="n">topic_key</span><span class="o">=</span><span class="n">topic_key</span><span class="p">)</span>
 
     <span class="n">main</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
 

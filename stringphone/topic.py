@@ -3,7 +3,7 @@ Classes and methods relating to the topic and its participants.
 """
 import hashlib
 
-from .crypto import AsymmetricCrypto, Signer, SymmetricCrypto, Verifier
+from .crypto import AsymmetricCrypto, Signer, SymmetricCrypto, Verifier, generate_signing_key_seed
 from .exceptions import IntroductionError, IntroductionReplyError, MalformedMessageError, MissingTopicKeyError, UntrustedKeyError
 
 PARTICIPANT_ID_LENGTH = 16
@@ -26,9 +26,38 @@ class Topic:
     (one-to-one is a subset of one-to-many communication).
     """
 
-    def __init__(self, signing_key_seed, topic_key=None, participants=None):
+    def __init__(self, signing_key_seed=None, topic_key=None, participants=None):
+        """
+        Various amounts of state can be passed to initialize according to each
+        use case.
+
+        :param bytes signing_key_seed: The optional seed for our signing key.
+            If you require identity persistence of this participant across
+            restarts, save and provide this. A participant's public and private
+            key and ID are generated from this seed, so passing the same seed
+            will result in the same keys and ID. **Keep this completely secret
+            from everyone**.
+
+            If this is not provided, one will be generated. You will not be able
+            to retrieve the generated seed, so only do this if you don't care
+            about persistent identities.
+        :param bytes topic_key: The optional symmetric encryption key this topic
+            uses. If this is known when instantiating, we can start sending and
+            receiving messages immediately, and discovery will only be useful to
+            get other participants to trust us.
+
+            If this is not provided, encryption and decryption will fail.
+        :param dict participants: The optional dictionary of trusted
+            participants. This should have the form
+            {b"participant_id": b"participant_key"}. Participant keys in this
+            dictionary will be trusted when verifying messages signed with them.
+        """
+        if signing_key_seed is None:
+            signing_key_seed = generate_signing_key_seed()
+
         if participants is None:
             participants = {}
+
         self._participants = participants
 
         self._init_symmetric_crypto(topic_key)
