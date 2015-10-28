@@ -112,69 +112,68 @@ Here's a quick annotated demonstration of how to do this::
 
     >>> from stringphone import Message, Topic, generate_topic_key
 
-    # Instantiate two participants, a master with a topic key and a slave
-    # without one. The slave will use the discovery protocol to request the key
-    # from the master.
-    >>> master = Topic(topic_key=generate_topic_key())
-    >>> slave = Topic()
+    # Instantiate two participants, Alice with a topic key and Bob without one.
+    # Bob will use the discovery protocol to request the key from Alice.
+    >>> alice = Topic(topic_key=generate_topic_key())
+    >>> bob = Topic()
 
-    # The slave doesn't have a key, so it must ask for one. The way to do this
-    # is by constructing and sending an intro message to the master.
-    >>> intro = slave.construct_intro()
+    # Bob doesn't have a key, so he must ask for one. The way to do this is by
+    # constructing and sending an intro message to Alice.
+    >>> intro = bob.construct_intro()
 
-    # The master will receive the message and try to decode it, but an exception
-    # will be raised, since the message is an introduction.
-    >>> master.decode(intro)
+    # Alice will receive the message and try to decode it, but an exception will
+    # be raised, since the message is an introduction.
+    >>> alice.decode(intro)
     Traceback (most recent call last):
       File "<input>", line 1, in <module>
       File "stringphone/topic.py", line 371, in decode
         raise IntroductionError("The received message is an introduction.")
     IntroductionError: The received message is an introduction.
 
-    # The master wraps the message in the Message convenience class and
-    # retrieves the sender's key.
+    # Alice wraps the message in the Message convenience class and retrieves
+    # the sender's (Bob's) public key.
     >>> message = Message(intro)
     >>> message.sender_key
-    ### '\x0f\x83\xc7\xcb52\xe5,q\xba\xed\x94\xab\xd9\xb5\xfc=\x8d\x13\xa2\xeb\x19\x84\x0f9\xba\xeb\xa2\tR\x08\x10'
+    '\x0f\x83\xc7\xcb52\xe5,q\xba\xed\x94\xab\xd9\xb5\xfc=\x8d\x13\xa2\xeb\x19\x84\x0f9\xba\xeb\xa2\tR\x08\x10'
 
-    # Realistically, the master will decide to reply to the intro because of a
+    # Realistically, Alice will decide to reply to the intro because of a
     # message dialog that will ask the user whether they want to trust the
-    # slave, or because of a pairing period where the master will trust all
-    # devices that introduce themselves in the nedt 10 seconds.
+    # Bob, or because of a pairing period where Alice will trust all devices
+    # that introduce themselves in the next 10 seconds.
     # Never unconditionally trust devices, or you will let anyone join the topic
     # and security will be invalidated.
-    >>> master.add_participant(message.sender_key)
+    >>> alice.add_participant(message.sender_key)
 
     # Construct and send the reply.
-    >>> reply = master.construct_reply(message)
+    >>> reply = alice.construct_reply(message)
 
-    # The slave will try to decode, producing another exception, which is how it
+    # Bob will try to decode, producing another exception, which is how he will
     # will realize that this is a reply.
-    >>> slave.decode(reply)
+    >>> bob.decode(reply)
     Traceback (most recent call last):
       File "<input>", line 1, in <module>
       File "stringphone/topic.py", line 375, in decode
         "The received message is an introduction reply.")
     IntroductionReplyError: The received message is an introduction reply.
 
-    # The slave will parse the reply, which will populate the topic with the
+    # Bob will parse the reply, which will populate the topic with the
     # topic key and return True to indicate success.
-    >>> slave.parse_reply(reply)
+    >>> bob.parse_reply(reply)
     True
 
-    # The slave decides to trust the participant that sent it the key. Never
-    # trust participants unconditionally.
-    >>> slave.add_participant(reply.sender_key)
+    # Bob decides to trust the participant that sent him the key (i.e. Alice).
+    # Never trust participants unconditionally.
+    >>> bob.add_participant(reply.sender_key)
 
     # Now the participants can freely and securely talk to each other.
-    >>> message = slave.encode(b"Hey, master! Thanks for the key!")
-    >>> master.decode(message)
-    'Hey, master! Thanks for the key!'
-    >>> message = master.encode("Hey slave! No problem!")
-    >>> slave.decode(message)
-    'Hey slave! No problem!'
+    >>> message = bob.encode(b"Hey, Alice! Thanks for the key!")
+    >>> alice.decode(message)
+    'Hey, Alice! Thanks for the key!'
+    >>> message = alice.encode("Hey Bob! No problem!")
+    >>> bob.decode(message)
+    'Hey Bob! No problem!'
 
-This is a short summary of how discovery works. You should now be able to use
+This was a short summary of how discovery works. You should now be able to use
 all of string telephone to exchange encrypted messages between participants and
 announce your clients to the world, as well as send the encryption key between
 them.
