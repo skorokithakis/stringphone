@@ -92,3 +92,94 @@ a topic, it can request the topic key from the other participants already in
 that topic. It can also request that new participants trust its public key so
 they can later verify its messages.
 
+The flow is:
+
+* Call `construct_intro <stringphone.topic.Topic.construct_intro>` on the
+  participant that needs the topic key (or at least wants the other participants
+  to acknowledge it and trust its key).  This returns the message, which can
+  then be sent down the channel.
+* Call `construct_reply <stringphone.topic.Topic.construct_reply>` on one or
+  more participants that already have the topic key. This creates the reply
+  message that contains the encrypted topic key, which can then be sent.
+* Call `parse_reply <stringphone.topic.Topic.parse_reply>` to extract the
+  `topic_key <stringphone.topic.Topic.topic_key` from the response and save it
+  in the `Topic <stringphone.topic.Topic>`. The `encode
+  <stringphone.topic.Topic.encode>` and `decode
+  <stringphone.topic.Topic.decode>` methods will then be able to encrypt and
+  decrypt messages so other participants can read them and reply.
+
+Here's a quick annotated demonstration of how to do this::
+
+    >>> from stringphone import Message, Topic, generate_topic_key
+
+    # Instantiate two participants, a master with a topic key and a slave
+    # without one. The slave will use the discovery protocol to request the key
+    # from the master.
+    >>> master = Topic(topic_key=generate_topic_key())
+    >>> slave = Topic()
+
+    # The slave doesn't have a key, so it must ask for one. The way to do this
+    # is by constructing and sending an intro message to the master.
+    >>> intro = slave.construct_intro()
+
+    # The master will receive the message and try to decode it, but an exception
+    # will be raised, since the message is an introduction.
+    >>> master.decode(intro)
+    Traceback (most recent call last):
+      File "<input>", line 1, in <module>
+      File "stringphone/topic.py", line 371, in decode
+        raise IntroductionError("The received message is an introduction.")
+    IntroductionError: The received message is an introduction.
+
+    # The master wraps the message in the Message convenience class and
+    # retrieves the sender's key.
+    >>> message = Message(intro)
+    >>> message.sender_key
+    ### '\x0f\x83\xc7\xcb52\xe5,q\xba\xed\x94\xab\xd9\xb5\xfc=\x8d\x13\xa2\xeb\x19\x84\x0f9\xba\xeb\xa2\tR\x08\x10'
+
+    # Realistically, the master will decide to reply to the intro because of a
+    # message dialog that will ask the user whether they want to trust the
+    # slave, or because of a pairing period where the master will trust all
+    # devices that introduce themselves in the nedt 10 seconds.
+    # Never unconditionally trust devices, or you will let anyone join the topic
+    # and security will be invalidated.
+    >>> master.add_participant(message.sender_key)
+
+    # Construct and send the reply.
+    >>> reply = master.construct_reply(message)
+
+    # The slave will try to decode, producing another exception, which is how it
+    # will realize that this is a reply.
+    >>> slave.decode(reply)
+    Traceback (most recent call last):
+      File "<input>", line 1, in <module>
+      File "stringphone/topic.py", line 375, in decode
+        "The received message is an introduction reply.")
+    IntroductionReplyError: The received message is an introduction reply.
+
+    # The slave will parse the reply, which will populate the topic with the
+    # topic key and return True to indicate success.
+    >>> slave.parse_reply(reply)
+    True
+
+    # The slave decides to trust the participant that sent it the key. Never
+    # trust participants unconditionally.
+    >>> slave.add_participant(reply.sender_key)
+
+    # Now the participants can freely and securely talk to each other.
+    >>> message = slave.encode(b"Hey, master! Thanks for the key!")
+    >>> master.decode(message)
+    'Hey, master! Thanks for the key!'
+    >>> message = master.encode("Hey slave! No problem!")
+    >>> slave.decode(message)
+    'Hey slave! No problem!'
+
+This is a short summary of how discovery works. You should now be able to use
+all of string telephone to exchange encrypted messages between participants and
+announce your clients to the world, as well as send the encryption key between
+them.
+
+From here, you can continue to the :doc:`protocol` documentation to learn more
+details about how string phone works at a lower level, or go to the
+:doc:`API documentation <stringphone>` to find more information about how the
+code is structured.

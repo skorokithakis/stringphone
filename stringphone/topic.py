@@ -24,9 +24,9 @@ MESSAGE_INTRO = b"i"
 MESSAGE_REPLY = b"r"
 
 
-class Message(object):
+class Message(bytes):
     def __init__(self, message):
-        self._message = message
+        self = message  # noqa
 
     @property
     def type(self):
@@ -36,7 +36,7 @@ class Message(object):
         :rtype: int
         """
         for message_type in (MESSAGE_SIMPLE, MESSAGE_INTRO, MESSAGE_REPLY):
-            if self._message.startswith(message_type):
+            if self.startswith(message_type):
                 return message_type
         return MESSAGE_UNKNOWN
 
@@ -51,7 +51,7 @@ class Message(object):
         """
         if self.type != MESSAGE_SIMPLE:
             raise ValueError("Message is of the wrong type for this property.")
-        return self._message[1:]
+        return self[1:]
 
     @property
     def ciphertext(self):
@@ -64,7 +64,7 @@ class Message(object):
         """
         if self.type != MESSAGE_SIMPLE:
             raise ValueError("Message is of the wrong type for this property.")
-        return self._message[65 + PARTICIPANT_ID_LENGTH:]
+        return self[65 + PARTICIPANT_ID_LENGTH:]
 
     @property
     def encrypted_topic_key(self):
@@ -76,7 +76,7 @@ class Message(object):
             property.
         """
         if self.type == MESSAGE_REPLY:
-            return self._message[17:89]
+            return self[17:89]
         else:
             raise ValueError("Message is of the wrong type for this property.")
 
@@ -90,7 +90,7 @@ class Message(object):
             property.
         """
         if self.type == MESSAGE_REPLY:
-            return self._message[1:17]
+            return self[1:17]
         else:
             raise ValueError("Message is of the wrong type for this property.")
 
@@ -104,7 +104,7 @@ class Message(object):
             property.
         """
         if self.type == MESSAGE_SIMPLE:
-            return self._message[65:81]
+            return self[65:81]
         elif self.type == MESSAGE_INTRO:
             return _get_id_from_key(self.sender_key)
         elif self.type == MESSAGE_REPLY:
@@ -122,11 +122,11 @@ class Message(object):
             property.
         """
         if self.type == MESSAGE_SIMPLE:
-            return self._message[65:81]
+            return self[65:81]
         elif self.type == MESSAGE_INTRO:
-            return self._message[1:33]
+            return self[1:33]
         elif self.type == MESSAGE_REPLY:
-            return self._message[121:153]
+            return self[121:153]
         else:
             raise ValueError("Message is of the wrong type for this property.")
 
@@ -140,9 +140,9 @@ class Message(object):
             property.
         """
         if self.type == MESSAGE_INTRO:
-            return self._message[33:]
+            return self[33:]
         elif self.type == MESSAGE_REPLY:
-            return self._message[89:121]
+            return self[89:121]
         else:
             raise ValueError("Message is of the wrong type for this property.")
 
@@ -275,8 +275,8 @@ class Topic(object):
         :returns: The message to broadcast.
         :rtype: bytes
         """
-        return MESSAGE_INTRO + self.public_key + \
-            self._asymmetric_crypto.public_key
+        return Message(MESSAGE_INTRO + self.public_key +
+            self._asymmetric_crypto.public_key)
 
     def construct_reply(self, message):
         """
@@ -296,8 +296,8 @@ class Topic(object):
                 self.topic_key,
                 message.encryption_key
             )
-        return MESSAGE_REPLY + message.sender_id + encrypted_topic_key + \
-            self._asymmetric_crypto.public_key + self.public_key
+        return Message(MESSAGE_REPLY + message.sender_id + encrypted_topic_key +
+            self._asymmetric_crypto.public_key + self.public_key)
 
     def parse_reply(self, message):
         """
