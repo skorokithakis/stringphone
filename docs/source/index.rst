@@ -37,7 +37,7 @@ a very simple interface::
     >>> alice = stringphone.Topic(topic_key=key)
     >>> bob = stringphone.Topic(topic_key=key)
     >>> message = alice.encode(b"Hi bob!")  # "s\xa7\xdf\xc3x\x19\x96\xd4..."
-    >>> bob.decode(message)
+    >>> bob.decode(message, naive=True)  # `naive` skips signature verification
     b"Hi bob!"
 
 
