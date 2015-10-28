@@ -31,7 +31,14 @@ ensuring that devices are who they claim to be, and that no third party can read
 your communications.
 
 Since complicated things tend to be less secure, string phone aims to have
-a very simple interface.
+a very simple interface::
+
+    >>> key = stringphone.generate_topic_key()
+    >>> alice = stringphone.Topic(topic_key=key)
+    >>> bob = stringphone.Topic(topic_key=key)
+    >>> message = alice.encode(b"Hi bob!")  # "s\xa7\xdf\xc3x\x19\x96\xd4..."
+    >>> bob.decode(message)
+    b"Hi bob!"
 
 
 Motivation
