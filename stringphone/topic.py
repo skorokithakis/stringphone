@@ -2,21 +2,18 @@
 lasses and methods relating to the topic and its participants.
 """
 from .crypto import (
-        PARTICIPANT_ID_LENGTH,
-        AsymmetricCrypto,
-        Signer,
-        SymmetricCrypto,
-        Verifier,
-        _get_id_from_key,
-        generate_signing_key_seed,
-    )
+    PARTICIPANT_ID_LENGTH,
+    AsymmetricCrypto,
+    Signer,
+    SymmetricCrypto,
+    Verifier,
+    _get_id_from_key,
+    generate_signing_key_seed,
+)
 from .exceptions import (
-        IntroductionError,
-        IntroductionReplyError,
-        MissingTopicKeyError,
-        UntrustedKeyError
-    )
-
+    IntroductionError, IntroductionReplyError, MissingTopicKeyError,
+    UntrustedKeyError
+)
 
 MESSAGE_UNKNOWN = b"u"
 MESSAGE_SIMPLE = b"s"
@@ -170,7 +167,12 @@ class Topic(object):
     (one-to-one is a subset of one-to-many communication).
     """
 
-    def __init__(self, signing_key_seed=None, topic_key=None, participants=None):
+    def __init__(
+        self,
+        signing_key_seed=None,
+        topic_key=None,
+        participants=None
+    ):
         """
         Various amounts of state can be passed to initialize according to each
         use case.
@@ -291,7 +293,9 @@ class Topic(object):
         :returns: The message to broadcast.
         :rtype: bytes
         """
-        signed_encryption_key = self._signer.sign(self._asymmetric_crypto.public_key)
+        signed_encryption_key = self._signer.sign(
+            self._asymmetric_crypto.public_key
+        )
         return Message(MESSAGE_INTRO + self.public_key + signed_encryption_key)
 
     def construct_reply(self, message):
@@ -307,7 +311,8 @@ class Topic(object):
         """
         if not self.topic_key:
             raise RuntimeError(
-                "Cannot construct introduction reply, topic key is unknown.")
+                "Cannot construct introduction reply, topic key is unknown."
+            )
 
         # The public key of the participant requesting the topic key.
         message = Message(message)
@@ -316,11 +321,12 @@ class Topic(object):
         encryption_key = verifier.verify(message.signed_encryption_key)
 
         encrypted_topic_key = self._asymmetric_crypto.encrypt(
-                self.topic_key,
-                encryption_key
-            )
-        return Message(MESSAGE_REPLY + message.sender_id + encrypted_topic_key +
-            self._asymmetric_crypto.public_key + self.public_key)
+            self.topic_key, encryption_key
+        )
+        return Message(
+            MESSAGE_REPLY + message.sender_id + encrypted_topic_key +
+            self._asymmetric_crypto.public_key + self.public_key
+        )
 
     def parse_reply(self, message):
         """
@@ -339,8 +345,7 @@ class Topic(object):
             return False
 
         topic_key = self._asymmetric_crypto.decrypt(
-            message.encrypted_topic_key,
-            message.encryption_key
+            message.encrypted_topic_key, message.encryption_key
         )
         self.topic_key = topic_key
         return True
@@ -359,7 +364,8 @@ class Topic(object):
         """
         if not self.topic_key:
             raise MissingTopicKeyError(
-                "Cannot encode data without a topic key.")
+                "Cannot encode data without a topic key."
+            )
 
         ciphertext = self.id + self._symmetric_crypto.encrypt(message)
         signed = self._signer.sign(ciphertext)
@@ -395,7 +401,8 @@ class Topic(object):
         elif message.type == MESSAGE_REPLY and not self.topic_key:
             # This is a reply to an introduction.
             raise IntroductionReplyError(
-                "The received message is an introduction reply.")
+                "The received message is an introduction reply."
+            )
         elif message.type == MESSAGE_SIMPLE:
             if not naive:
                 # Verify the signature.
@@ -406,7 +413,8 @@ class Topic(object):
                         return
                     else:
                         raise UntrustedKeyError(
-                            "Verification key for participant not found.")
+                            "Verification key for participant not found."
+                        )
                 sender_key = self._participants[message.sender_id]
                 verifier = Verifier(sender_key)
                 verifier.verify(message.signed_payload)

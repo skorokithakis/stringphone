@@ -4,7 +4,9 @@ from hypothesis.strategies import binary
 
 from stringphone import Topic, Message
 from stringphone import generate_topic_key
-from stringphone.exceptions import IntroductionError, IntroductionReplyError
+from stringphone.exceptions import (
+    BadSignatureError, IntroductionError, IntroductionReplyError
+)
 
 
 @given(binary())
@@ -27,7 +29,9 @@ def test_ignore_untrusted(bytestring):
     master = Topic(topic_key=topic_key)
     slave = Topic(topic_key=topic_key)
 
-    assert slave.decode(master.encode(bytestring), ignore_untrusted=True) is None
+    assert slave.decode(
+        master.encode(bytestring),
+        ignore_untrusted=True) is None
 
     master.add_participant(slave.public_key)
     assert master.decode(slave.encode(bytestring), naive=True) == bytestring
@@ -71,6 +75,12 @@ def test_discovery(bytestring):
     # Trust the slave.
     public_key = Message(intro).sender_key
     master.add_participant(public_key)
+
+    # If the intro contains a public key that didn't sign
+    # the encryption key, assert that we raise an error.
+    bad_intro = intro[0] + master.public_key + intro[33:]
+    with pytest.raises(BadSignatureError):
+        master.construct_reply(bad_intro)
 
     # Reply to the slave with the encrypted topic key.
     reply = master.construct_reply(intro)

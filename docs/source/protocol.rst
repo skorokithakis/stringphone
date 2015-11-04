@@ -98,7 +98,7 @@ The introduction contains:
 * An ephemeral encryption key to which replies with the topic key can be
   encrypted. The ephemeral encryption key is signed with the signing key.
 
-+-----------+------------+-------------+----------------------------+
++-----------+------------+-------------+-----------+----------------+
 | **Part**  | Type ("i") | Signing key | Signature | Encryption key |
 +-----------+------------+-------------+-----------+----------------+
 | **Size**  | 1 byte     | 32 bytes    | 64 bytes  | 32 bytes       |
