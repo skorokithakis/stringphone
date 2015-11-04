@@ -44,7 +44,9 @@ can send an introduction message (obtained through
 <stringphone.topic.Topic.construct_introduction>`) to request the topic key
 from other participants. This contains the new participant's signing key (so it
 can identify subsequent messages to others) and its encryption key, with which
-the topic key will be encrypted.
+the topic key will be encrypted. The encryption key is signed with the signing
+key, to prevent attackers from sending arbitrary signing keys along with their
+own encryption key and enticing participants to give them the topic key.
 
 
 Reply
@@ -94,13 +96,13 @@ The introduction contains:
 
 * The sender's signing key (from which the sender's ID can be derived).
 * An ephemeral encryption key to which replies with the topic key can be
-  encrypted.
+  encrypted. The ephemeral encryption key is signed with the signing key.
 
-+-----------+------------+-------------+----------------+
-| **Part**  | Type ("i") | Signing key | Encryption key |
-+-----------+------------+-------------+----------------+
-| **Size**  | 1 byte     | 32 bytes    | 32 bytes       |
-+-----------+------------+-------------+----------------+
++-----------+------------+-------------+----------------------------+
+| **Part**  | Type ("i") | Signing key | Signature | Encryption key |
++-----------+------------+-------------+-----------+----------------+
+| **Size**  | 1 byte     | 32 bytes    | 64 bytes  | 32 bytes       |
++-----------+------------+-------------+-----------+----------------+
 
 
 Reply

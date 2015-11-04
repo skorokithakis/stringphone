@@ -26,6 +26,8 @@ MESSAGE_REPLY = b"r"
 
 class Message(bytes):
     def __init__(self, message):
+        # This is a subclass of bytes, so we want to make sure it
+        # acts like one in every circumstance.
         self = message  # noqa
 
     @property
@@ -143,6 +145,20 @@ class Message(bytes):
             return self[33:]
         elif self.type == MESSAGE_REPLY:
             return self[89:121]
+        else:
+            raise ValueError("Message is of the wrong type for this property.")
+
+    @property
+    def signed_encryption_key(self):
+        """
+        The signed encryption key.
+
+        :rtype: bytes
+        :raises ValueError: if the given message type does not have this
+            property.
+        """
+        if self.type == MESSAGE_INTRO:
+            return self[33:]
         else:
             raise ValueError("Message is of the wrong type for this property.")
 
@@ -275,8 +291,8 @@ class Topic(object):
         :returns: The message to broadcast.
         :rtype: bytes
         """
-        return Message(MESSAGE_INTRO + self.public_key +
-            self._asymmetric_crypto.public_key)
+        signed_encryption_key = self._signer.sign(self._asymmetric_crypto.public_key)
+        return Message(MESSAGE_INTRO + self.public_key + signed_encryption_key)
 
     def construct_reply(self, message):
         """
@@ -286,15 +302,22 @@ class Topic(object):
         :param bytes message: The raw introduction message from the channel.
         :returns: The reply message to broadcast.
         :rtype: bytes
+        :raises BadSignatureError: if the signature of the encryption key is
+            invalid.
         """
         if not self.topic_key:
             raise RuntimeError(
                 "Cannot construct introduction reply, topic key is unknown.")
+
         # The public key of the participant requesting the topic key.
         message = Message(message)
+
+        verifier = Verifier(message.sender_key)
+        encryption_key = verifier.verify(message.signed_encryption_key)
+
         encrypted_topic_key = self._asymmetric_crypto.encrypt(
                 self.topic_key,
-                message.encryption_key
+                encryption_key
             )
         return Message(MESSAGE_REPLY + message.sender_id + encrypted_topic_key +
             self._asymmetric_crypto.public_key + self.public_key)
