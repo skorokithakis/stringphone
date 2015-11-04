@@ -31,7 +31,8 @@ def test_ignore_untrusted(bytestring):
 
     assert slave.decode(
         master.encode(bytestring),
-        ignore_untrusted=True) is None
+        ignore_untrusted=True
+    ) is None
 
     master.add_participant(slave.public_key)
     assert master.decode(slave.encode(bytestring), naive=True) == bytestring
@@ -78,7 +79,8 @@ def test_discovery(bytestring):
 
     # If the intro contains a public key that didn't sign
     # the encryption key, assert that we raise an error.
-    bad_intro = intro[0] + master.public_key + intro[33:]
+    bad_intro = bytearray(intro[0:1]) + bytearray(master.public_key) + \
+            intro[33:]
     with pytest.raises(BadSignatureError):
         master.construct_reply(bad_intro)
 
