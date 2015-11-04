@@ -80,7 +80,7 @@ def test_discovery(bytestring):
     # If the intro contains a public key that didn't sign
     # the encryption key, assert that we raise an error.
     bad_intro = bytearray(intro[0:1]) + bytearray(master.public_key) + \
-            intro[33:]
+        intro[33:]
     with pytest.raises(BadSignatureError):
         master.construct_reply(bad_intro)
 
