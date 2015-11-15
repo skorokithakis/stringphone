@@ -169,7 +169,7 @@ Here's a quick annotated demonstration of how to do this::
     >>> message = bob.encode(b"Hey, Alice! Thanks for the key!")
     >>> alice.decode(message)
     'Hey, Alice! Thanks for the key!'
-    >>> message = alice.encode("Hey Bob! No problem!")
+    >>> message = alice.encode(b"Hey Bob! No problem!")
     >>> bob.decode(message)
     'Hey Bob! No problem!'
 
